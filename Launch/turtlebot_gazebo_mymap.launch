@@ -1,0 +1,43 @@
+<!-- 
+  Turtlebot navigation simulation:
+  - Gazebo
+  - map_server
+  - move_base
+  - static map
+  - amcl
+  - rviz view
+ -->
+<launch>
+  <arg name="base"       default="$(optenv TURTLEBOT_BASE kobuki)"/>  <!-- create, rhoomba -->
+  <arg name="stacks"     default="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons -->
+  <arg name="3d_sensor"  default="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro -->
+
+  <!-- Name of the map to use (without path nor extension) and initial position -->
+  <arg name="map_file"       default=" $(find gaitech_edu)/src/maps/maze.yaml"/> <!-- psu -->
+  <arg name="world_file"     default=" $(find gaitech_edu)/src/maps/stage/maze.world"/>
+  <arg name="initial_pose_x" default="0.0"/>
+  <arg name="initial_pose_y" default="0.0"/>
+  <arg name="initial_pose_a" default="0.0"/>
+
+  <param name="/use_sim_time" value="true"/>
+
+  <!--  ************** Navigation  ***************  -->
+  <include file="$(find turtlebot_navigation)/launch/includes/move_base.launch.xml"/>
+
+  <!--  ****** Maps *****  -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+    <param name="frame_id" value="/map"/>
+  </node>
+
+  <include file="$(find turtlebot_navigation)/launch/includes/amcl/amcl.launch.xml">
+    <arg name="scan_topic" value="scan"/>
+    <arg name="use_map_topic" value="true"/>
+    <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
+  </include>
+
+  <!--  **************** Visualisation ****************  -->
+<!--  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find turtlebot_rviz_launchers)/rviz/navigation.rviz"/> -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find turtlebot_stage)/rviz/robot_navigation.rviz"/>
+</launch>
