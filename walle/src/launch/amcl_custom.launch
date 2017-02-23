@@ -32,13 +32,15 @@
     <arg name="custom_param_file" value="$(arg custom_param_file)"/>
   </include>
 
-  <!-- parameters -->
-  <param name="base_global_planner" value="global_planner/GlobalPlanner" />
-  <param name="neutral_cost" value="66" />
-  <param name="cost_factor" value="0.55" />
-  <param name="sim_time" value="1.5" />
-  <param name="vx_samples" value="20" />
-  <param name="vtheta_samples" value="40" />
+  <!-- move_base parameters -->
+  <param name="/move_base/base_global_planner" value="global_planner/GlobalPlanner" />
+  <!-- global planner parameters -->
+  <param name="/move_base/GlobalPlanner/neutral_cost" value="66" />
+  <param name="/move_base/GlobalPlanner/cost_factor" value="0.55" />
+  <!-- DWA planner parameters -->
+  <param name="/move_base/DWAPlannerROS/sim_time" value="1.5" />
+  <param name="/move_base/DWAPlannerROS/vx_samples" value="20" />
+  <param name="/move_base/DWAPlannerROS/vtheta_samples" value="40" />
 
 </launch>
 
