@@ -32,4 +32,13 @@
     <arg name="custom_param_file" value="$(arg custom_param_file)"/>
   </include>
 
+  <!-- parameters -->
+  <param name="base_global_planner" value="global_planner/GlobalPlanner" />
+  <param name="neutral_cost" value="66" />
+  <param name="cost_factor" value="0.55" />
+  <param name="sim_time" value="1.5" />
+  <param name="vx_samples" value="20" />
+  <param name="vtheta_samples" value="40" />
+
 </launch>
+
