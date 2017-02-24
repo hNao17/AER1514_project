@@ -1,7 +1,8 @@
 How to Obtain Data from Orbbec Astra
 ========================================
 
-1) Bringing up the depth stream from the camera can be done using: 
+Bringing up the depth stream from the camera can be done using: 
+-------------------------------------------------------------------
 
 $ roslaunch turtlebot_bringup 3dsensor.launch 
 
@@ -16,7 +17,8 @@ The depth streams can be initialized by running
 $ roslaunch astra_launch astrapro.launch 
 
 
-2) I could only access the RGB stream by installing usb_cam: 
+I could only access the RGB stream by installing usb_cam: 
+-------------------------------------------------------------------
 
 https://github.com/bosch-ros-pkg/usb_cam 
 
