@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(gaitech_edu)
+project(walle)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -8,9 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
- pocketsphinx
- tf
- sound_play
+  tf
 )
 
 catkin_package(
@@ -39,21 +37,29 @@ add_executable(talker_node src/ros_basics/talker_listener/talker.cpp)
 target_link_libraries (talker_node ${catkin_LIBRARIES})
 #add_dependencies(talker gaitech_doc_generate_message_cpp)
 
-#listener
-add_executable(listener_node src/ros_basics/talker_listener/listener.cpp)
-target_link_libraries (listener_node ${catkin_LIBRARIES})
-#add_dependencies(talker gaitech_doc_generate_message_cpp)
-
-add_executable(voice_teleop_node src/turtlebot/voice_teleop/voice_teleop.cpp)
-target_link_libraries(voice_teleop_node ${catkin_LIBRARIES})
-
-#add_executable(joy_teleop src/turtlebot/voice_teleop/joy_teleop.cpp)
-#target_link_libraries(joy_teleop ${catkin_LIBRARIES})
-
-add_executable(free_space_navigation_node src/turtlebot/navigation/free_space_navigation/free_space_navigation.cpp)
-target_link_libraries(free_space_navigation_node ${catkin_LIBRARIES})
-
+#map_navigation
 add_executable(map_navigation_node src/turtlebot/navigation/map_navigation/map_navigation.cpp)
 target_link_libraries(map_navigation_node ${catkin_LIBRARIES})
+
+#nav_test1
+add_executable(nav_test1 src/turtlebot/navigation/map_navigation/nav_test1.cpp)
+target_link_libraries(nav_test1 ${catkin_LIBRARIES})
+
+#nav_test2
+add_executable(nav_test2 src/turtlebot/navigation/map_navigation/nav_test2.cpp)
+target_link_libraries(nav_test2 ${catkin_LIBRARIES})
+
+#nav_test3
+add_executable(nav_test3 src/turtlebot/navigation/map_navigation/nav_test3.cpp)
+target_link_libraries(nav_test3 ${catkin_LIBRARIES})
+
+#nav_test4
+add_executable(nav_test4 src/turtlebot/navigation/map_navigation/nav_test4.cpp)
+target_link_libraries(nav_test4 ${catkin_LIBRARIES})
+
+#nqr_nav_test1
+add_executable(qr_nav_test1.cpp src/turtlebot/navigation/map_navigation/qr_nav_test1.cpp)
+target_link_libraries(qr_nav_test1.cpp ${catkin_LIBRARIES})
+
 
 
