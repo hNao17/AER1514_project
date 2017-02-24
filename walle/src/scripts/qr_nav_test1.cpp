@@ -17,12 +17,13 @@ double path [][3] = { {31.4,3.0,90.0},
 		      {31.4,8.0,90.0}};
 		
 
-ros::Subscriber sub;
+ros::Subscriber sub_amcl_pose;
+ros::Subscriber sub_visp_status;
 ros::Publisher pub_vel;
 double x_current;
 double y_current;
 
-double scan_time=4.0;
+double scan_time=8.0;
 double current_time=0.0;
 double initial_time=0.0;
 
@@ -42,7 +43,8 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 
 	//determine spawn location, check AMCL callback
-	sub = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
+	sub_amcl_pose = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
+	sub_visp_status = nh.subscribe("visp_auto_tracker/status",1000,vispStatusCallback);
 	pub_vel = nh.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);	
 	ros::spinOnce();
 
@@ -144,11 +146,11 @@ void scanRotate()
 {
 	geometry_msgs::Twist vel_msg;
 	vel_msg.linear.x =0;	
-	vel_msg.angular.z=M_PI/2;
+	vel_msg.angular.z=M_PI/4;
 
 	initial_time = ros::Time::now().toSec();
 	ROS_INFO_STREAM("Initating QR detect");
-	while ((current_time-initial_time) < scan_time || qrDetect == true)
+	while ((current_time-initial_time) < scan_time && qrDetect == false)
 	{
 		current_time = ros::Time::now().toSec();
 		pub_vel.publish(vel_msg);
@@ -160,15 +162,21 @@ void scanRotate()
 		vel_msg.linear.x =0;	
 		vel_msg.angular.z=0;
 		pub_vel.publish(vel_msg);
+
+		ros::spinOnce();
 	
 	ROS_INFO_STREAM("Finished QR detect");
+	qrDetect=false;
 }
 
 void vispStatusCallback(const std_msgs::Int8& msgVispStatus)
 {
+	ROS_INFO_STREAM("visp status: "<<msgVispStatus.data);
 	if (msgVispStatus.data == 3 || msgVispStatus.data == 4)
+	{
+		ROS_INFO_STREAM("Found QR Code");
 		qrDetect=true;
-	
+	}
 }
 
 /*void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
