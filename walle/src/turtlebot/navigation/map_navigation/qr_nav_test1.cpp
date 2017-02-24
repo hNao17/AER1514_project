@@ -3,6 +3,8 @@
 #include <actionlib/client/simple_action_client.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <std_msgs/Int8.h>
 
 //global variables
 const double num_waypoints=6;
@@ -24,9 +26,14 @@ double scan_time=4.0;
 double current_time=0.0;
 double initial_time=0.0;
 
+bool qrDetect = false;
+
+
 /** function declarations **/
 void moveToGoal(double xGoal, double yGoal, double yawGoal);
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL);
+void vispStatusCallback(const std_msgs::Int8& msgVispStatus);
+//void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose);
 void scanRotate();
 
 int main(int argc, char** argv)
@@ -141,14 +148,30 @@ void scanRotate()
 
 	initial_time = ros::Time::now().toSec();
 	ROS_INFO_STREAM("Initating QR detect");
-	while ((current_time-initial_time) < scan_time)
+	while ((current_time-initial_time) < scan_time || qrDetect == true)
 	{
 		current_time = ros::Time::now().toSec();
-		
 		pub_vel.publish(vel_msg);
+		//check if visp has detected qr code
+		ros::spinOnce();
+						
 	}
+	
+		vel_msg.linear.x =0;	
+		vel_msg.angular.z=0;
+		pub_vel.publish(vel_msg);
 	
 	ROS_INFO_STREAM("Finished QR detect");
 }
 
+void vispStatusCallback(const std_msgs::Int8& msgVispStatus)
+{
+	if (msgVispStatus.data == 3 || msgVispStatus.data == 4)
+		qrDetect=true;
+	
+}
+
+/*void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
+{
+}*/
 
