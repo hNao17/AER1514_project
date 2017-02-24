@@ -1,3 +1,6 @@
+How to Obtain Data from Orbbec Astra
+========================================
+
 1) Bringing up the depth stream from the camera can be done using: 
 
 $ roslaunch turtlebot_bringup 3dsensor.launch 
