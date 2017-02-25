@@ -57,9 +57,9 @@ target_link_libraries(nav_test3 ${catkin_LIBRARIES})
 add_executable(nav_test4 src/turtlebot/navigation/map_navigation/nav_test4.cpp)
 target_link_libraries(nav_test4 ${catkin_LIBRARIES})
 
-#nqr_nav_test1
-add_executable(qr_nav_test1.cpp src/turtlebot/navigation/map_navigation/qr_nav_test1.cpp)
-target_link_libraries(qr_nav_test1.cpp ${catkin_LIBRARIES})
+#nqr_nav_test
+add_executable(qr_nav_test.cpp src/turtlebot/navigation/map_navigation/qr_nav_test.cpp)
+target_link_libraries(qr_nav_test.cpp ${catkin_LIBRARIES})
 
 
 
