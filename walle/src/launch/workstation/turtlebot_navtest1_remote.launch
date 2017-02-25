@@ -1,0 +1,18 @@
+<launch>
+
+	  <node 
+		pkg="rviz" 
+		name="rviz" 	
+		type="rviz" 
+		args="-d $(find turtlebot_stage)/rviz/robot_navigation.rviz"/>
+
+	<node
+		pkg = "walle"
+		name = "nav_test1"
+		type = "nav_test1"
+		required = "true"
+		launch-prefix= "xterm -e"
+	/>
+
+</launch>
+
