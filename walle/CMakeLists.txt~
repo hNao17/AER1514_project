@@ -49,7 +49,7 @@ add_executable(nav_test4 src/scripts/nav_test4.cpp)
 target_link_libraries(nav_test4 ${catkin_LIBRARIES})
 
 #nqr_nav_test
-add_executable(qr_nav_test src/scripts/qr_nav_test.cpp)
+add_executable(qr_nav_test src/scripts/qr_nav_test)
 target_link_libraries(qr_nav_test ${catkin_LIBRARIES})
 
 #nqr_nav_test
