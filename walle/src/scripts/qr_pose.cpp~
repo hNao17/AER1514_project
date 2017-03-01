@@ -230,7 +230,7 @@ void vispStatusCallback(const std_msgs::Int8& msgVispStatus)
 void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
 {
 
-	ROS_INFO_STREAM("Current position from Camera: ("                             <<msgVispPose.pose.position.x <<","<<msgVispPose.pose.position.y <<"," <<msgVispPose.pose.position.z <<")");
+	ROS_INFO_STREAM("Current position from Camera: ("<<msgVispPose.pose.position.x<<","<<msgVispPose.pose.position.y <<"," <<msgVispPose.pose.position.z <<")");
 	point.setX(msgVispPose.pose.position.x);
 	point.setY(msgVispPose.pose.position.y);
 	point.setZ(msgVispPose.pose.position.z);

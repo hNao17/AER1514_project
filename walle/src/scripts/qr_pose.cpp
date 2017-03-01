@@ -107,6 +107,9 @@ int main(int argc, char** argv)
 		ROS_INFO_STREAM("Camera X in MAP Frame :"<<transform.getOrigin().x());
 		ROS_INFO_STREAM("Camera Y in MAP Frame :"<<transform.getOrigin().y());
 		ROS_INFO_STREAM("Camera Z in MAP Frame :"<<transform.getOrigin().z());
+		ROS_INFO_STREAM("QR X in Camera Frame :"<<point.x());
+		ROS_INFO_STREAM("QR Y in Camera Frame :"<<point.y());
+		ROS_INFO_STREAM("QR Z in Camera Frame :"<<point.z());
 		ROS_INFO_STREAM("QR X in MAP Frame :"<<point_bl.x());
 		ROS_INFO_STREAM("QR Y in MAP Frame :"<<point_bl.y());
 		ROS_INFO_STREAM("QR Z in MAP Frame :"<<point_bl.z());
@@ -230,7 +233,7 @@ void vispStatusCallback(const std_msgs::Int8& msgVispStatus)
 void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
 {
 
-	ROS_INFO_STREAM("Current position from Camera: ("<<msgVispPose.pose.position.x<<","<<msgVispPose.pose.position.y <<"," <<msgVispPose.pose.position.z <<")");
+	//ROS_INFO_STREAM("Current position from Camera: ("<<msgVispPose.pose.position.x<<","<<msgVispPose.pose.position.y <<"," <<msgVispPose.pose.position.z <<")");
 	point.setX(msgVispPose.pose.position.x);
 	point.setY(msgVispPose.pose.position.y);
 	point.setZ(msgVispPose.pose.position.z);
