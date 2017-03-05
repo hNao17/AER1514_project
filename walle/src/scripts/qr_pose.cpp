@@ -21,6 +21,7 @@ double path [][3] = { {31.4,3.0,90.0},
 		
 
 ros::Subscriber sub;
+ros::Subscriber sub_amcl;
 ros::Publisher pub_vel;
 double x_current;
 double y_current;
@@ -34,7 +35,8 @@ bool qrDetect = false;
 
 // the point, in the camera frame
 //tf::Vector3 point(x, y, z);
-tf::Vector3 point(0, 0, 0);
+tf::Vector3 qr_rel_pose(0, 0, 0);
+tf::Vector3 base_pose(0, 0, 0);
 
 // request the transform between the two frames
 //tf::TransformListener listener;
@@ -71,6 +73,7 @@ int main(int argc, char** argv)
 
 	//determine spawn location, check AMCL callback
 	sub = nh.subscribe("/visp_auto_tracker/object_position",1000,vispPoseCallback);
+	sub_amcl = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
 	//pub_vel = nh.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);	
 	ros::spinOnce();
 
@@ -102,17 +105,28 @@ int main(int argc, char** argv)
 		}
 
 		// the point, in the base link frame
-		tf::Vector3 point_bl = transform * point;
+		tf::Vector3 qr_pose = transform * qr_rel_pose;
+		tf::Vector3 approach_vector = (base_pose-qr_pose);
+		approach_vector.setZ(0.0);	// Neglect the height difference
+		approach_vector = approach_vector/approach_vector.length(); // Normalize to unit vector
+		tf::Vector3 qr_goal = qr_pose + 1*approach_vector;
+		qr_goal.setZ(0.0) //Neglect the Height
 
 		ROS_INFO_STREAM("Camera X in MAP Frame :"<<transform.getOrigin().x());
 		ROS_INFO_STREAM("Camera Y in MAP Frame :"<<transform.getOrigin().y());
 		ROS_INFO_STREAM("Camera Z in MAP Frame :"<<transform.getOrigin().z());
-		ROS_INFO_STREAM("QR X in Camera Frame :"<<point.x());
-		ROS_INFO_STREAM("QR Y in Camera Frame :"<<point.y());
-		ROS_INFO_STREAM("QR Z in Camera Frame :"<<point.z());
-		ROS_INFO_STREAM("QR X in MAP Frame :"<<point_bl.x());
-		ROS_INFO_STREAM("QR Y in MAP Frame :"<<point_bl.y());
-		ROS_INFO_STREAM("QR Z in MAP Frame :"<<point_bl.z());
+		ROS_INFO_STREAM("QR X in Camera Frame :"<<qr_rel_pose.x());
+		ROS_INFO_STREAM("QR Y in Camera Frame :"<<qr_rel_pose.y());
+		ROS_INFO_STREAM("QR Z in Camera Frame :"<<qr_rel_pose.z());
+		ROS_INFO_STREAM("QR X in MAP Frame :"<<qr_pose.x());
+		ROS_INFO_STREAM("QR Y in MAP Frame :"<<qr_pose.y());
+		ROS_INFO_STREAM("QR Z in MAP Frame :"<<qr_pose.z());
+		ROS_INFO_STREAM("Base X in MAP Frame :"<<base_pose.x());
+		ROS_INFO_STREAM("Base Y in MAP Frame :"<<base_pose.y());
+		ROS_INFO_STREAM("Base Z in MAP Frame :"<<base_pose.z());
+		ROS_INFO_STREAM("QR Goal X in MAP Frame :"<<qr_goal.x());
+		ROS_INFO_STREAM("QR Goal Y in MAP Frame :"<<qr_goal.y());
+		ROS_INFO_STREAM("QR Goal Z in MAP Frame :"<<qr_goal.z());
 		ROS_INFO_STREAM("=====");	
 		ros::spinOnce();
 		rate.sleep();
@@ -197,6 +211,10 @@ void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 
 	x_current = msgAMCL.pose.pose.position.x;
 	y_current = msgAMCL.pose.pose.position.y;
+
+	base_pose.setX(msgAMCL.pose.pose.position.x);
+	base_pose.setY(msgAMCL.pose.pose.position.y);
+	base_pose.setZ(0.0);
 }
 
 void scanRotate()
@@ -234,9 +252,9 @@ void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
 {
 
 	//ROS_INFO_STREAM("Current position from Camera: ("<<msgVispPose.pose.position.x<<","<<msgVispPose.pose.position.y <<"," <<msgVispPose.pose.position.z <<")");
-	point.setX(msgVispPose.pose.position.x);
-	point.setY(msgVispPose.pose.position.y);
-	point.setZ(msgVispPose.pose.position.z);
+	qr_rel_pose.setX(msgVispPose.pose.position.x);
+	qr_rel_pose.setY(msgVispPose.pose.position.y);
+	qr_rel_pose.setZ(msgVispPose.pose.position.z);
 	
 }
 
