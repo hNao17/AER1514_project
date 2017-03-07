@@ -22,10 +22,7 @@ double path [][3] = { {31.5,4.0,90.0},
 ros::Subscriber sub_amcl_pose;
 ros::Subscriber sub_visp_status;
 ros::Subscriber sub_visp_word;
-<<<<<<< HEAD
 ros::Subscriber sub_visp_pose;
-=======
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
 
 ros::Publisher pub_vel;
 double x_current;
@@ -41,19 +38,11 @@ bool qrProcessing = false;
 int qr_detect_counter=0;
 
 
-<<<<<<< HEAD
-=======
-// the QR code position in the camera frame
-tf::Vector3 point(0, 0, 0);
-
-
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
 /** function declarations **/
 void moveToGoal(double xGoal, double yGoal, double yawGoal);
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL);
 void vispStatusCallback(const std_msgs::Int8& msgVispStatus);
 void vispWordCallback(const std_msgs::String& msgVispWord);
-<<<<<<< HEAD
 void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose);
 void scanRotate();
 static tf::Quaternion toQuaternion(double pitch, double roll, double yaw);
@@ -63,13 +52,6 @@ static void toEulerianAngle(const tf::Quaternion& q, double& roll, double& pitch
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "qr_nav_test_vs");
-=======
-void scanRotate();
-
-int main(int argc, char** argv)
-{
-	ros::init(argc, argv, "qr_nav_test");
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
 	ros::NodeHandle nh;
     
 	//determine spawn location, check AMCL callback
@@ -117,7 +99,6 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	goal.target_pose.pose.position.z =  0.0;
     
     tf::Quaternion qQR;
-<<<<<<< HEAD
 
     qQR = toQuaternion(0,0,yawGoal);
 
@@ -126,15 +107,6 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 //    goal.target_pose.pose.orientation.y = qQR.y;
 //    goal.target_pose.pose.orientation.z = qQR.z;
 //    goal.target_pose.pose.orientation.w = qQR.w;
-=======
-            
-    toQuaternion(qQR,0,0,theta_at_stop);
-    
-    goal.target_pose.pose.orientation.x = qQR.x;
-    goal.target_pose.pose.orientation.y = qQR.y;
-    goal.target_pose.pose.orientation.z = qQR.z;
-    goal.target_pose.pose.orientation.w = qQR.w;
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
 
 	/*/convert degrees to quaternion
 	if(yawGoal == 0.0)
@@ -257,14 +229,9 @@ void scanRotate()
             
             /*****************************/
             //need to exit here to QR approach mode
-<<<<<<< HEAD
             tf::Vector3 qr_nav_goal(0,0,0);
             qr_nav_goal = qr_goal_calculate();
             moveToGoal(qr_nav_goal.x(),qr_nav_goal.y(),theta_current);
-=======
-            tf::Vector3 qr_nav_goal = qr_goal_calculate()
-            moveToGoal(qr_nav_goal.x,qr_nav_goal.y,theta_at_stop);
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
             
             /*
             //start moving after QR code has been processed
@@ -335,21 +302,7 @@ void vispWordCallback(const std_msgs::String& msgVispWord)
         ROS_INFO_STREAM("QR Word ="<<msgVispWord.data);
 }
 
-<<<<<<< HEAD
 static tf::Quaternion toQuaternion(double pitch, double roll, double yaw)
-=======
-void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
-{
-
-	//ROS_INFO_STREAM("Current position from Camera: ("<<msgVispPose.pose.position.x<<","<<msgVispPose.pose.position.y <<"," <<msgVispPose.pose.position.z <<")");
-	point.setX(msgVispPose.pose.position.x);
-	point.setY(msgVispPose.pose.position.y);
-	point.setZ(msgVispPose.pose.position.z);
-	
-}
-
-static void toQuaternion(const Quaterniond& q, double pitch, double roll, double yaw)
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
 {
 	//Quaterniond q;
 	double t0 = std::cos(yaw * 0.5);
@@ -359,7 +312,6 @@ static void toQuaternion(const Quaterniond& q, double pitch, double roll, double
 	double t4 = std::cos(pitch * 0.5);
 	double t5 = std::sin(pitch * 0.5);
 
-<<<<<<< HEAD
 //	q.w() = t0 * t2 * t4 + t1 * t3 * t5;
 //	q.x() = t0 * t3 * t4 - t1 * t2 * t5;
 //	q.y() = t0 * t2 * t5 + t1 * t3 * t4;
@@ -370,16 +322,6 @@ static void toQuaternion(const Quaterniond& q, double pitch, double roll, double
 }
 
 static void toEulerianAngle(const tf::Quaternion& q, double& roll, double& pitch, double& yaw)
-=======
-	q.w() = t0 * t2 * t4 + t1 * t3 * t5;
-	q.x() = t0 * t3 * t4 - t1 * t2 * t5;
-	q.y() = t0 * t2 * t5 + t1 * t3 * t4;
-	q.z() = t1 * t2 * t4 - t0 * t3 * t5;
-	//return q;
-}
-
-static void toEulerianAngle(const Quaterniond& q, double& roll, double& pitch, double& yaw)
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
 {
 	double ysqr = q.y() * q.y();
 
@@ -403,15 +345,9 @@ static void toEulerianAngle(const Quaterniond& q, double& roll, double& pitch, d
 static tf::Vector3 qr_goal_calculate()
 {
     // request the transform between the two frames
-<<<<<<< HEAD
 	  tf::TransformListener listener;
     tf::StampedTransform transform;
 
-=======
-	tf::TransformListener listener;
-    tf::StampedTransform transform;
-    
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
     try{
 		  listener.waitForTransform( "map","camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0));
 		  listener.lookupTransform("map","camera_depth_optical_frame", ros::Time(0), transform);
@@ -425,13 +361,8 @@ static tf::Vector3 qr_goal_calculate()
 		tf::Vector3 approach_vector = (base_pose-qr_pose);
 		approach_vector.setZ(0.0);	// Neglect the height difference
 		approach_vector = approach_vector/approach_vector.length(); // Normalize to unit vector
-<<<<<<< HEAD
 		tf::Vector3 qr_goal = qr_pose + 0.5*approach_vector;
 		qr_goal.setZ(0.0); //Neglect the Height
-=======
-		tf::Vector3 qr_goal = qr_pose + 1*approach_vector;
-		qr_goal.setZ(0.0) //Neglect the Height
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
 
 		ROS_INFO_STREAM("Camera X in MAP Frame :"<<transform.getOrigin().x());
 		ROS_INFO_STREAM("Camera Y in MAP Frame :"<<transform.getOrigin().y());
@@ -449,14 +380,9 @@ static tf::Vector3 qr_goal_calculate()
 		ROS_INFO_STREAM("QR Goal X in MAP Frame :"<<qr_goal.x());
 		ROS_INFO_STREAM("QR Goal Y in MAP Frame :"<<qr_goal.y());
 		ROS_INFO_STREAM("QR Goal Z in MAP Frame :"<<qr_goal.z());
-<<<<<<< HEAD
         ROS_INFO_STREAM("=====");
 
 		//tf::Vector3 qr_goal(0,0,0);
-=======
-        ROS_INFO_STREAM("====="); 
-        
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
         return qr_goal;
 }
 
@@ -468,8 +394,4 @@ void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
 	qr_rel_pose.setY(msgVispPose.pose.position.y);
 	qr_rel_pose.setZ(msgVispPose.pose.position.z);
 	
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> f5538d6b7965999883706bf638b0b52229df7206
