@@ -6,14 +6,15 @@
 //global variables
 double x_des;
 double y_des;
+double theta_des;
 double x_current;
 double y_current;
 
 ros::Subscriber sub;
- 
+
 
 /** function declarations **/
-void moveToGoal(double xGoal, double yGoal);
+void moveToGoal(double xGoal, double yGoal, double yawGoal);
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL);
 
 int main(int argc, char** argv)
@@ -22,7 +23,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 
 	//determine spawn location, check AMCL callback
-	sub = nh.subscribe("amcl_pose",1000,poseAMCLCallback);	
+	sub = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
 	ros::spinOnce();
 
 	while(ros::ok())
@@ -30,12 +31,15 @@ int main(int argc, char** argv)
 		//user enters desired xy position
 		std::cout<<"Enter destination x-coordinate: ";
 		std::cin>>x_des;
-		
+
 		std::cout<<"Enter destination y-coordinate: ";
-		std::cin>>y_des; 
-		
+		std::cin>>y_des;
+
+        std::cout<<"Enter destination orientation: ";
+		std::cin>>theta_des;
+
 		//position command
-		moveToGoal(x_des, y_des); 
+		moveToGoal(x_des, y_des,theta_des);
 
 		//determine position error
 		ros::spinOnce(); //check AMCL Callback
@@ -47,14 +51,15 @@ int main(int argc, char** argv)
 
 }
 
-void moveToGoal(double xGoal, double yGoal)
+void moveToGoal(double xGoal, double yGoal, double yawGoal)
 {
 
 	//define a client for to send goal requests to the move_base server through a SimpleActionClient
 	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
 
 	//wait for the action server to come up
-	while(!ac.waitForServer(ros::Duration(5.0))){
+	while(!ac.waitForServer(ros::Duration(5.0)))
+    {
 		ROS_INFO("Waiting for the move_base action server to come up");
 	}
 
@@ -68,11 +73,48 @@ void moveToGoal(double xGoal, double yGoal)
 
 	goal.target_pose.pose.position.x =  xGoal;
 	goal.target_pose.pose.position.y =  yGoal;
-	goal.target_pose.pose.position.z =  0.0;
-	goal.target_pose.pose.orientation.x = 0.0;
-	goal.target_pose.pose.orientation.y = 0.0;
-	goal.target_pose.pose.orientation.z = 0.0;
-	goal.target_pose.pose.orientation.w = 1.0;
+
+
+	if (yawGoal == 0.0)
+    {
+        goal.target_pose.pose.position.z =  0.0;
+        goal.target_pose.pose.orientation.x = 0.0;
+        goal.target_pose.pose.orientation.y = 0.0;
+        goal.target_pose.pose.orientation.z = 0.0;
+        goal.target_pose.pose.orientation.w = 1.0;
+    }
+
+    else if (yawGoal == 90.0)
+	{
+		goal.target_pose.pose.orientation.x = 0.0;
+		goal.target_pose.pose.orientation.y = 0.0;
+		goal.target_pose.pose.orientation.z = sqrt(2);
+		goal.target_pose.pose.orientation.w = sqrt(2);
+	}
+
+    else if(yawGoal == 135.0)
+	{
+		goal.target_pose.pose.orientation.x = 0.0;
+		goal.target_pose.pose.orientation.y = 0.0;
+		goal.target_pose.pose.orientation.z = 0.924;
+		goal.target_pose.pose.orientation.w = 0.383;
+	}
+
+	else if(yawGoal == 180.0)
+	{
+		goal.target_pose.pose.orientation.x = 0.0;
+		goal.target_pose.pose.orientation.y = 0.0;
+		goal.target_pose.pose.orientation.z = 1.0;
+		goal.target_pose.pose.orientation.w = 0.009;
+	}
+
+    else if(yawGoal == 270.0)
+	{
+		goal.target_pose.pose.orientation.x = 0.0;
+		goal.target_pose.pose.orientation.y = 0.0;
+		goal.target_pose.pose.orientation.z = sqrt(2);
+		goal.target_pose.pose.orientation.w = -sqrt(2);
+	}
 
 	ROS_INFO("Sending goal location ...");
 	ac.sendGoal(goal);
@@ -93,22 +135,10 @@ void moveToGoal(double xGoal, double yGoal)
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 {
 
-	/*tf::Quaternion q (odom.pose.pose.orientation.x, 
-			  odom.pose.pose.orientation.y,
-			  odom.pose.pose.orientation.z,
-			  odom.pose.pose.orientation.w);
-
-	tf::Matrix3x3 m(q);
-	double roll, pitch, yaw;
-	m.getRPY(roll, pitch, yaw);*/
-
 	ROS_INFO_STREAM("Current turtlebot position: ("
                                <<msgAMCL.pose.pose.position.x <<","
 			       <<msgAMCL.pose.pose.position.y <<","
 			       <<msgAMCL.pose.pose.position.z <<")");
-
-	/*ROS_INFO_STREAM("Current turtlebot orientation: (0,0,"
-                               <<yaw*r2D<<")"); */
 
 	x_current = msgAMCL.pose.pose.position.x;
 	y_current = msgAMCL.pose.pose.position.y;
