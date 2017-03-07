@@ -11,9 +11,13 @@
 #include <tf/transform_datatypes.h>
 
 //global variables
-const int num_waypoints=20;
-const int dim_waypoint=3;
-double path [num_waypoints][dim_waypoint];
+const double num_waypoints=5;
+const double dim_waypoint=3;
+double path [][3] = { {31.5,4.0,90.0},
+                      {31.5,5.0,90.0},
+		              {31.5,6.0,90.0},
+		              {31.5,7.0,90.0},
+                      {31.5,8.0,90.0}};
 
 ros::Subscriber sub_amcl_pose;
 ros::Subscriber sub_visp_status;
@@ -24,10 +28,7 @@ ros::Publisher pub_vel;
 double x_current;
 double y_current;
 double theta_current;
-const double x_home=31.5;
-const double y_home=1.75;
-const double theta_home=90.0;
-const double maxDist_for_qr_approach = 5.0;
+
 
 // Global Variables
 tf::Vector3 qr_rel_pose(0, 0, 0);
@@ -45,7 +46,7 @@ void vispWordCallback(const std_msgs::String& msgVispWord);
 void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose);
 void scanRotate();
 static tf::Quaternion toQuaternion(double pitch, double roll, double yaw);
-static bool qr_goal_calculate(tf::Vector3& qr_goal);
+static tf::Vector3 qr_goal_calculate();
 static void toEulerianAngle(const tf::Quaternion& q, double& roll, double& pitch, double& yaw);
 
 int main(int argc, char** argv)
@@ -53,69 +54,26 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "qr_nav_test_vs");
 	ros::NodeHandle nh;
     
+	//determine spawn location, check AMCL callback
 	sub_amcl_pose = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
 	sub_visp_status = nh.subscribe("visp_auto_tracker/status",1000,vispStatusCallback);
 	sub_visp_word = nh.subscribe("visp_auto_tracker/code_message",100,vispWordCallback);
 	sub_visp_pose = nh.subscribe("/visp_auto_tracker/object_position",1000,vispPoseCallback);
     pub_vel = nh.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
+	//ros::spinOnce();
 
-    scanON=true;
-    qrProcessing =false;
-
-    while(ros::ok())
-    {
-    	ros::spinOnce();
-    	if(qr_detect_counter>=5)
-    	{
-            tf::Vector3 qr_nav_goal(0,0,0);
-            bool qr_approachability_flag = qr_goal_calculate(qr_nav_goal);
-            if(qr_approachability_flag==true)
-            {
-            	moveToGoal(qr_nav_goal.x(),qr_nav_goal.y(),theta_current);
-            	ROS_INFO_STREAM("Completed QR Approach");
-            	ros::spin();
-            }
-            else
-            	qr_detect_counter=0;
-    	}
-
-    }
+	for (int i=0; i<num_waypoints; i++)
+	{
+		//position command
+		ROS_INFO_STREAM("Waypoint #"<<i+1);
+		moveToGoal(path[i][0], path[i][1], path[i][2]);
+        qr_detect_counter=0;
+        scanRotate();
+		ROS_INFO_STREAM("X Position Error: "<<path[i][0]-x_current);
+		ROS_INFO_STREAM("Y Position Error: "<<path[i][1]-y_current);
+		ROS_INFO_STREAM("Next destination");
+	}
 }
-
-/*
-void readWaypoints()
-{
-    std::ifstream infile("/waypoint_textfiles/masterWaypoints4.txt.csv");
-
-    double xPoint;
-    double yPoint;
-    double theta;
-    int waypointCounter=0;
-
-    if(infile.is_open())
-    {
-        while(infile>>xPoint>>yPoint>>theta)
-        {
-            path[waypointCounter][0]=xPoint;
-            path[waypointCounter][1]=yPoint;
-            path[waypointCounter][2]=theta;
-            waypointCounter++;
-        }
-
-        infile.close();
-
-        for(int i=0; i < num_waypoints; i++)
-        {
-            ROS_INFO_STREAM("X: "<<path[i][0]<<", Y: "<<path[i][1]<<", Theta: "<<path[i][2]);
-        }
-    }
-
-    else
-    {
-        ROS_INFO_STREAM("File is not open");
-    }
-}
-*/
 
 void moveToGoal(double xGoal, double yGoal, double yawGoal)
 {
@@ -234,6 +192,93 @@ void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
     base_pose.setZ(0.0);
 }
 
+void scanRotate()
+{
+	geometry_msgs::Twist vel_msg;
+	vel_msg.linear.x =0;
+	vel_msg.angular.z=M_PI/4;
+
+	double theta_previous;
+	double theta_at_stop;
+	double theta_complete=0;
+	double del_theta;
+
+	//initial_time = ros::Time::now().toSec();
+	ROS_INFO_STREAM("Initating QR detect");
+	ros::Rate loop_rate(100);
+	ros::spinOnce();
+
+	theta_previous = theta_current;
+
+    while(theta_complete < 2*M_PI)
+	{
+	    scanON = true;
+		pub_vel.publish(vel_msg);
+		ros::spinOnce();
+
+        //wait for qr code to be processed
+        if(qr_detect_counter >=5)
+        {
+            qrProcessing = true;
+            theta_at_stop = theta_complete;
+
+            vel_msg.linear.x=0;
+            vel_msg.angular.z=0;
+            pub_vel.publish(vel_msg);
+            //ros::Duration(5.0).sleep();
+            
+            /*****************************/
+            //need to exit here to QR approach mode
+            tf::Vector3 qr_nav_goal(0,0,0);
+            qr_nav_goal = qr_goal_calculate();
+            moveToGoal(qr_nav_goal.x(),qr_nav_goal.y(),theta_current);
+            
+            /*
+            //start moving after QR code has been processed
+            while((theta_complete-theta_at_stop) < M_PI/3 && theta_complete < 2*M_PI)
+            {
+                ROS_INFO_STREAM("Relative Angle:"<<theta_complete-theta_at_stop);
+                vel_msg.angular.z=M_PI/4;
+                pub_vel.publish(vel_msg);
+
+                ros::spinOnce();
+
+                del_theta = theta_current - theta_previous;
+
+                if(abs(del_theta)>M_PI)
+                    del_theta+= 2*M_PI;
+
+                theta_complete +=  del_theta;
+                theta_previous = theta_current;
+            }
+             */
+
+            qr_detect_counter = 0;
+        }
+
+        //qr_detect_counter can be incremented again
+        qrProcessing = false;
+
+		del_theta = theta_current - theta_previous;
+
+		if(abs(del_theta)>M_PI)
+            del_theta+= 2*M_PI;
+
+        theta_complete +=  del_theta;
+        theta_previous = theta_current;
+
+	}
+
+	//QR code found; stop rotating
+	vel_msg.linear.x =0;
+	vel_msg.angular.z=0;
+	pub_vel.publish(vel_msg);
+
+	//moving to next waypoint
+    scanON = false;
+	ROS_INFO_STREAM("Finished QR detect");
+}
+
 void vispStatusCallback(const std_msgs::Int8& msgVispStatus)
 {
 	//ROS_INFO_STREAM("Visp Callback Started");
@@ -297,11 +342,11 @@ static void toEulerianAngle(const tf::Quaternion& q, double& roll, double& pitch
 	yaw = std::atan2(t3, t4);
 }
 
-static bool qr_goal_calculate(tf::Vector3& qr_goal)
+static tf::Vector3 qr_goal_calculate()
 {
     // request the transform between the two frames
 	  tf::TransformListener listener;
-      tf::StampedTransform transform;
+    tf::StampedTransform transform;
 
     try{
 		  listener.waitForTransform( "map","camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0));
@@ -315,11 +360,9 @@ static bool qr_goal_calculate(tf::Vector3& qr_goal)
 		tf::Vector3 qr_pose = transform * qr_rel_pose;
 		tf::Vector3 approach_vector = (base_pose-qr_pose);
 		approach_vector.setZ(0.0);	// Neglect the height difference
-
 		approach_vector = approach_vector/approach_vector.length(); // Normalize to unit vector
-		qr_goal = qr_pose + 0.5*approach_vector;
+		tf::Vector3 qr_goal = qr_pose + 0.5*approach_vector;
 		qr_goal.setZ(0.0); //Neglect the Height
-
 
 		ROS_INFO_STREAM("Camera X in MAP Frame :"<<transform.getOrigin().x());
 		ROS_INFO_STREAM("Camera Y in MAP Frame :"<<transform.getOrigin().y());
@@ -327,34 +370,20 @@ static bool qr_goal_calculate(tf::Vector3& qr_goal)
 		ROS_INFO_STREAM("QR X in Camera Frame :"<<qr_rel_pose.x());
 		ROS_INFO_STREAM("QR Y in Camera Frame :"<<qr_rel_pose.y());
 		ROS_INFO_STREAM("QR Z in Camera Frame :"<<qr_rel_pose.z());
-		ROS_INFO_STREAM("");
+        ROS_INFO_STREAM("");
 		ROS_INFO_STREAM("QR X in MAP Frame :"<<qr_pose.x());
 		ROS_INFO_STREAM("QR Y in MAP Frame :"<<qr_pose.y());
 		ROS_INFO_STREAM("QR Z in MAP Frame :"<<qr_pose.z());
 		ROS_INFO_STREAM("Base X in MAP Frame :"<<base_pose.x());
 		ROS_INFO_STREAM("Base Y in MAP Frame :"<<base_pose.y());
 		ROS_INFO_STREAM("Base Z in MAP Frame :"<<base_pose.z());
+		ROS_INFO_STREAM("QR Goal X in MAP Frame :"<<qr_goal.x());
+		ROS_INFO_STREAM("QR Goal Y in MAP Frame :"<<qr_goal.y());
+		ROS_INFO_STREAM("QR Goal Z in MAP Frame :"<<qr_goal.z());
+        ROS_INFO_STREAM("=====");
 
-
-
-		// If QR is close enough for approaching
-		if (approach_vector.length()< maxDist_for_qr_approach)
-		{
-			ROS_INFO_STREAM("=====");
-			ROS_INFO_STREAM("QR Goal X in MAP Frame :"<<qr_goal.x());
-			ROS_INFO_STREAM("QR Goal Y in MAP Frame :"<<qr_goal.y());
-			ROS_INFO_STREAM("QR Goal Z in MAP Frame :"<<qr_goal.z());
-			ROS_INFO_STREAM("=====");
-			return true;
-		}
-
-		else
-		{
-			ROS_INFO_STREAM("=====");
-			ROS_INFO_STREAM("QR is too far away at distance = "<<approach_vector.length()<<" m");
-			ROS_INFO_STREAM("=====");
-			return false;
-		}
+		//tf::Vector3 qr_goal(0,0,0);
+        return qr_goal;
 }
 
 void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
