@@ -18,7 +18,7 @@ double path [][3] = { {31.4,3.0,90.0},
                       {31.4,6.0,90.0},
                       {31.4,7.0,90.0},
 		      {31.4,8.0,90.0}};
-		
+
 
 ros::Subscriber sub;
 ros::Subscriber sub_amcl;
@@ -68,13 +68,13 @@ int main(int argc, char** argv)
 
 	// the point, in the camera frame
 	//tf::Vector3 point(1.0, 0, 0);
-	
+
 	ros::Rate rate(2);
 
 	//determine spawn location, check AMCL callback
 	sub = nh.subscribe("/visp_auto_tracker/object_position",1000,vispPoseCallback);
 	sub_amcl = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
-	//pub_vel = nh.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);	
+	//pub_vel = nh.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
 	ros::spinOnce();
 
 /*
@@ -87,14 +87,14 @@ int main(int argc, char** argv)
 		//determine position error
 		ros::spinOnce(); //check AMCL Callback
 		ROS_INFO_STREAM("X Position Error: "<<path[i][0]-x_current);
-		ROS_INFO_STREAM("Y Position Error: "<<path[i][1]-y_current);		
-		ROS_INFO_STREAM("Next destination");		
+		ROS_INFO_STREAM("Y Position Error: "<<path[i][1]-y_current);
+		ROS_INFO_STREAM("Next destination");
 	}
 
 */
 
 	while(ros::ok())
-	{	
+	{
 
 		try{
 		  listener.waitForTransform( "map","camera_depth_optical_frame", ros::Time(0), ros::Duration(3.0));
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
 		approach_vector.setZ(0.0);	// Neglect the height difference
 		approach_vector = approach_vector/approach_vector.length(); // Normalize to unit vector
 		tf::Vector3 qr_goal = qr_pose + 1*approach_vector;
-		qr_goal.setZ(0.0) //Neglect the Height
+		qr_goal.setZ(0.0); //Neglect the Height
 
 		ROS_INFO_STREAM("Camera X in MAP Frame :"<<transform.getOrigin().x());
 		ROS_INFO_STREAM("Camera Y in MAP Frame :"<<transform.getOrigin().y());
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 		ROS_INFO_STREAM("QR Goal X in MAP Frame :"<<qr_goal.x());
 		ROS_INFO_STREAM("QR Goal Y in MAP Frame :"<<qr_goal.y());
 		ROS_INFO_STREAM("QR Goal Z in MAP Frame :"<<qr_goal.z());
-		ROS_INFO_STREAM("=====");	
+		ROS_INFO_STREAM("=====");
 		ros::spinOnce();
 		rate.sleep();
 	}
@@ -192,7 +192,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 {
 
-	/*tf::Quaternion q (odom.pose.pose.orientation.x, 
+	/*tf::Quaternion q (odom.pose.pose.orientation.x,
 			  odom.pose.pose.orientation.y,
 			  odom.pose.pose.orientation.z,
 			  odom.pose.pose.orientation.w);
@@ -220,7 +220,7 @@ void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 void scanRotate()
 {
 	geometry_msgs::Twist vel_msg;
-	vel_msg.linear.x =0;	
+	vel_msg.linear.x =0;
 	vel_msg.angular.z=M_PI/2;
 
 	initial_time = ros::Time::now().toSec();
@@ -231,13 +231,13 @@ void scanRotate()
 		pub_vel.publish(vel_msg);
 		//check if visp has detected qr code
 		ros::spinOnce();
-						
+
 	}
-	
-		vel_msg.linear.x =0;	
+
+		vel_msg.linear.x =0;
 		vel_msg.angular.z=0;
 		pub_vel.publish(vel_msg);
-	
+
 	ROS_INFO_STREAM("Finished QR detect");
 }
 
@@ -245,7 +245,7 @@ void vispStatusCallback(const std_msgs::Int8& msgVispStatus)
 {
 	if (msgVispStatus.data == 3 || msgVispStatus.data == 4)
 		qrDetect=true;
-	
+
 }
 
 void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
@@ -255,6 +255,6 @@ void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
 	qr_rel_pose.setX(msgVispPose.pose.position.x);
 	qr_rel_pose.setY(msgVispPose.pose.position.y);
 	qr_rel_pose.setZ(msgVispPose.pose.position.z);
-	
+
 }
 
