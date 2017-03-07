@@ -110,7 +110,7 @@ int main(int argc, char** argv)
 		approach_vector.setZ(0.0);	// Neglect the height difference
 		approach_vector = approach_vector/approach_vector.length(); // Normalize to unit vector
 		tf::Vector3 qr_goal = qr_pose + 1*approach_vector;
-		qr_goal.setZ(0.0) //Neglect the Height
+		qr_goal.setZ(0.0); //Neglect the Height
 
 		ROS_INFO_STREAM("Camera X in MAP Frame :"<<transform.getOrigin().x());
 		ROS_INFO_STREAM("Camera Y in MAP Frame :"<<transform.getOrigin().y());
