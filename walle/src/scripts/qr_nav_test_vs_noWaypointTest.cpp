@@ -62,29 +62,27 @@ int main(int argc, char** argv)
     scanON=true;
     qrProcessing =false;
 
-	 //import waypoints from text file
-	readWaypoints();
+    while(ros::ok())
+    {
+    	ros::spinOnce();
+    	if(qr_detect_counter>=5)
+    	{
+            tf::Vector3 qr_nav_goal(0,0,0);
+            bool qr_approachability_flag = qr_goal_calculate(qr_nav_goal);
+            if(qr_approachability_flag==true)
+            {
+            	moveToGoal(qr_nav_goal.x(),qr_nav_goal.y(),theta_current);
+            	ROS_INFO_STREAM("Completed QR Approach");
+            	ros::Duration(1000).sleep();
+            }
+            else
+            	qr_detect_counter=0;
+    	}
 
-   ros::spinOnce();
-   for (int i=0; i<num_waypoints; i++)
-	{
-		//position command
-		ROS_INFO_STREAM("Waypoint #"<<i+1);
-		moveToGoal(path[i][0], path[i][1], path[i][2]);
-
-		//determine position error
-		ros::spinOnce(); //check AMCL Callback
-		ROS_INFO_STREAM("X Position Error: "<<path[i][0]-x_current);
-		ROS_INFO_STREAM("Y Position Error: "<<path[i][1]-y_current);
-		ROS_INFO_STREAM("Next destination");
-	}
-
-	//return home
-    ROS_INFO_STREAM("Exploration Complete. Going home.");
-	moveToGoal(x_home,y_home,theta_home);
+    }
 }
 
-
+/*
 void readWaypoints()
 {
     std::ifstream infile("/waypoint_textfiles/masterWaypoints4.txt.csv");
@@ -117,7 +115,7 @@ void readWaypoints()
         ROS_INFO_STREAM("File is not open");
     }
 }
-
+*/
 
 void moveToGoal(double xGoal, double yGoal, double yawGoal)
 {
@@ -192,44 +190,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	ROS_INFO("Sending goal location ...");
 	ac.sendGoal(goal);
 
-	double start_time = ros::Time::now().toSec();
-	double current_time = start_time;
-
-	while((ac.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)&&((current_time-start_time)<30.0))
-	{
-		if(qr_detect_counter>=2)
-		{
-			tf::Vector3 qr_nav_goal(0,0,0);
-			bool qr_approachability_flag = qr_goal_calculate(qr_nav_goal);
-			if(qr_approachability_flag==true)
-			{
-				move_base_msgs::MoveBaseGoal adhoc_goal;
-				adhoc_goal = goal; // orientation is maintained
-				adhoc_goal.target_pose.pose.position.x =  qr_nav_goal.x();
-				adhoc_goal.target_pose.pose.position.y =  qr_nav_goal.y(;
-				adhoc_goal.target_pose.pose.position.z =  0.0;
-				ac.cancelGoal();
-				ac.sendGoal(adhoc_goal); //approach qr
-				ac.waitForResult(ros::Duration(10.0));
-				if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-				{
-					ROS_INFO_STREAM("Completed QR Approach");
-				}
-				else
-				{
-					ROS_INFO("The robot failed to reach the QR");
-				}
-
-				ros::Duration(1000).sleep();
-			}
-			else
-				qr_detect_counter=0;
-		}
-
-
-		current_time = ros::Time::now().toSec();
-
-	}
+	ac.waitForResult(ros::Duration(30.0));
 
 	if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
@@ -241,10 +202,6 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	{
 		ROS_INFO("The robot failed to reach the destination");
 	}
-
-
-
-
 
 }
 
