@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 
 void readWaypoints()
 {
-    std::ifstream infile("/home/na052/AER1514/src/walle/src/scripts/masterWaypoints3.txt.csv");
+    std::ifstream infile("/waypoint_textfiles/masterWaypoints4.txt.csv");
 
     double xPoint;
     double yPoint;
@@ -137,7 +137,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	ROS_INFO("Sending goal location ...");
 	ac.sendGoal(goal);
 
-	ac.waitForResult(ros::Duration(10.0));
+	ac.waitForResult(ros::Duration(30.0));
 
 	if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{

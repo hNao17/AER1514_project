@@ -24,35 +24,35 @@ int main (int argc, char** argv)
     //sub_explore=nh.subscriber("<<topic_name>>",1000,exploreCompleteCallback);
     //pub_docking = nh.publisher<<"message_type">>("<<topic_name>>",100);
     //periodically check for explore_complete flag
-    ros::Rate rate(1);
-    while(start_docking==false)
-    {
+    //ros::Rate rate(1);
+    //while(start_docking==false)
+    //{
         //node is idle until explore_complete flag is true
-        ros::spinOnce();
-    }
+        //ros::spinOnce();
+   //}
 
     ROS_INFO_STREAM("Explore complete. Initiating auto-dock.");
 
     //create message type that this node can publish to supervisor
-    ros::Rate rate2(100);
-    while(docking_complete==false)
-    {
+    //ros::Rate rate2(100);
+    //while(docking_complete==false)
+    //{
         docking_complete = moveToDock();
         //pub_docking.publish(<<msg_name>>);
 
-        if(docking_complete==false)
-        {
+        //if(docking_complete==false)
+        //{
              // double x_local, y_local,theta_local
              // initiate visual servoing code that repositions turtebot so that is aligned with central emitter
                 //visualServoDock(&x_local, &y_local, &theta_local)
              //moveToLocalGoal(x_local,y_local,theta_local)
-             ROS_INFO_STREAM("Repeating auto-dock");
-        }
+            // ROS_INFO_STREAM("Repeating auto-dock");
+        //}
 
-    }
+    //}
 
-     ROS_INFO_STREAM("Docking Complete");
-     ros::spin();
+     //ROS_INFO_STREAM("Docking Complete");
+     //ros::spin();
 
 }
 
@@ -80,12 +80,11 @@ int main (int argc, char** argv)
 
 bool moveToDock()
 {
-    actionlib::SimpleActionClient<kobuki_msgs::AutoDockingAction> ac_dock("AutoDockingAction", true);
+    actionlib::SimpleActionClient<kobuki_msgs::AutoDockingAction> ac_dock("dock_drive_action", true);
 
-    while(!ac_dock.waitForServer(ros::Duration(5.0)))
-	{
-		ROS_INFO("Waiting for the AutoDocking action server to come up");
-	}
+
+    ROS_INFO("Waiting for the AutoDocking action server to come up");
+    ac_dock.waitForServer();
 
 	kobuki_msgs::AutoDockingGoal goal_dock;
 

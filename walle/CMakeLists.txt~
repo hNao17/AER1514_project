@@ -48,12 +48,30 @@ target_link_libraries(nav_test3 ${catkin_LIBRARIES})
 add_executable(nav_test4 src/scripts/nav_test4.cpp)
 target_link_libraries(nav_test4 ${catkin_LIBRARIES})
 
-#nqr_nav_test
+#qr_nav_test
 add_executable(qr_nav_test src/scripts/qr_nav_test.cpp)
 target_link_libraries(qr_nav_test ${catkin_LIBRARIES})
 
-add_executable(qr_pose src/scripts/qr_pose.cpp)
-target_link_libraries(qr_pose ${catkin_LIBRARIES})
+#add_executable(qr_pose src/scripts/qr_pose.cpp)
+#target_link_libraries(qr_pose ${catkin_LIBRARIES})
 
 add_executable(qr_nav_test_vs src/scripts/qr_nav_test_vs.cpp)
 target_link_libraries(qr_nav_test_vs ${catkin_LIBRARIES})
+
+#qr_nav_test_rotatedLaptop
+add_executable(qr_nav_test_rotatedLaptop src/scripts/qr_nav_test_rotatedLaptop.cpp)
+target_link_libraries(qr_nav_test_rotatedLaptop ${catkin_LIBRARIES})
+
+#qr_nav_test_rotatedLaptop
+add_executable(cancelGoal_test src/scripts/cancelGoal_test.cpp)
+target_link_libraries(cancelGoal_test ${catkin_LIBRARIES})
+
+#autoDock_test
+add_executable(autoDock_test src/scripts/autoDock_test.cpp)
+target_link_libraries(autoDock_test ${catkin_LIBRARIES})
+
+#autoDock_test
+add_executable(autoDock_nav_test src/scripts/autoDock_nav_test.cpp)
+target_link_libraries(autoDock_nav_test ${catkin_LIBRARIES})
+
+
