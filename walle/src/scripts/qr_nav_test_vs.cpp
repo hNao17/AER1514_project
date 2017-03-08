@@ -41,11 +41,17 @@ int qr_detect_counter=0;
 const int num_waypoints=20;
 const int dim_waypoint=3;
 //double path [num_waypoints][dim_waypoint];
-double path [][3] = { {31.0,       8.57,       140.0},
-                      {31.0,       8.57,      140.0},
-		              {31.0,       8.57,       40.00},
-		              {32.1,       9.49,       140.0},
-                      {31.0,       9.49,       140.0}};
+//double path [][3] = { {31.0,       8.57,       140.0},
+//                      {31.0,       8.57,      140.0},
+//		              {31.0,       8.57,       40.00},
+//		              {32.1,       9.49,       140.0},
+//                      {31.0,       9.49,       140.0}};
+
+double path [][3] = { {31.0,       2.52,       140.0},
+                      {31.0,       2.52,      140.0},
+		              {31.0,       2.52,       40.00},
+		              {32.1,       3.44,       140.0},
+                      {31.0,       3.44,       140.0}};
 
 /** function declarations **/
 void moveToGoal(double xGoal, double yGoal, double yawGoal);
