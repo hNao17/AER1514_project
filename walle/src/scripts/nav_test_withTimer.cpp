@@ -9,19 +9,21 @@
 #include <tf/tf.h>
 
 /** global variables **/
-const int num_waypoints=10;
+const int num_waypoints=26;
 const int dim_waypoint=3;
 double path [num_waypoints][dim_waypoint];
+
+bool time_exceeded = false;
+bool returnHome = false;
+double allowable_time = 90.0;
 
 ros::Subscriber sub;
 double x_current;
 double y_current;
 
 const double x_home=31.5;
-const double y_home=4.5;
+const double y_home=4.0;
 const double theta_home=90.0;
-
-bool returnHome=false;
 
 /** function declarations **/
 void readWaypoints();
@@ -31,39 +33,59 @@ void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL);
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "nav_test2");
+	ros::init(argc, argv, "nav_test_withTimer");
 	ros::NodeHandle nh;
 
-    //import waypoints from text file
+    	//import waypoints from text file
 	readWaypoints();
 
 	//determine spawn location, check AMCL callback
 	sub = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
 	ros::spinOnce();
 
-	for (int i=0; i<num_waypoints; i++)
+	int i=0;
+
+    double start_time = ros::Time::now().toSec();
+    double current_time;
+
+    while(i<num_waypoints && time_exceeded==false)
 	{
 		//position command
 		ROS_INFO_STREAM("Waypoint #"<<i+1);
 		moveToGoal(path[i][0], path[i][1], path[i][2]);
+
+		current_time=ros::Time::now().toSec();
+
+        if(current_time-start_time > allowable_time)
+        {
+           time_exceeded = true;
+           ROS_INFO_STREAM("Allowable search time has been exceeded");
+        }
+
+        //publish message
+        ROS_INFO_STREAM("Elasped Time = "<<current_time-start_time<<"[s]");
 
 		//determine position error
 		ros::spinOnce(); //check AMCL Callback
 		ROS_INFO_STREAM("X Position Error: "<<path[i][0]-x_current);
 		ROS_INFO_STREAM("Y Position Error: "<<path[i][1]-y_current);
 		ROS_INFO_STREAM("Next destination");
-	}
 
-	//return home
-	returnHome = true;
-    ROS_INFO_STREAM("Exploration Complete. Going home.");
-	moveToGoal(x_home,y_home,theta_home);
-	ros::spinOnce();
+		i++;
+	}
+        //return home
+        returnHome = true;
+        ROS_INFO_STREAM("Exploration complete. Going home.");
+        moveToGoal(x_home,y_home,theta_home);
+        ros::spinOnce();
+
+        ROS_INFO_STREAM("Number of waypoints visted: "<<i);
+
 }
 
 void readWaypoints()
 {
-    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints7.txt.csv");
+    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints5.txt.csv");
 
     double xPoint;
     double yPoint;
@@ -118,27 +140,39 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	goal.target_pose.pose.position.y =  yGoal;
 	goal.target_pose.pose.position.z =  0.0;
 
-	//convert degrees to quaternion
-    tf::Quaternion qQR;
+	tf::Quaternion qQR;
+
     qQR = toQuaternion(0,0,yawGoal);
+
     quaternionTFToMsg(qQR, goal.target_pose.pose.orientation); // stores qQR in goal orientation
 
 	ROS_INFO("Sending goal location ...");
 	ac.sendGoal(goal);
 
-    if(returnHome==false)
-        ac.waitForResult(ros::Duration(30.0));
-    else
-        ac.waitForResult();
+	//only cancel goal while the Turtlebot is in an explore state
+	if(time_exceeded==true && returnHome==false)
+	{
+	    ac.cancelGoal();
+	    ROS_WARN_STREAM("Canceling goal b/c allowable search time has been exceeded.");
+	}
 
-	if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-	{
-		ROS_INFO("You have reached the destination");
-	}
-	else
-	{
-		ROS_INFO("The robot failed to reach the destination");
-	}
+    else
+    {
+        //give the Turtlebot and unlimited amount of time to return home
+        if(returnHome==true)
+            ac.waitForResult();
+        else
+            ac.waitForResult(ros::Duration(30.0));
+
+        if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+        {
+            ROS_INFO("You have reached the destination");
+        }
+        else
+        {
+            ROS_INFO("The robot failed to reach the destination");
+        }
+    }
 
 }
 
@@ -172,3 +206,5 @@ void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 	x_current = msgAMCL.pose.pose.position.x;
 	y_current = msgAMCL.pose.pose.position.y;
 }
+
+

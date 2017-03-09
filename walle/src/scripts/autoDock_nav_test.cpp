@@ -10,13 +10,14 @@
 #include <kobuki_msgs/AutoDockingAction.h>
 
 //global variables
-const double num_waypoints=2;
+const double num_waypoints=3;
 const double dim_waypoint=3;
 double path [][3] = { {31.5,10.0,90.0},
-                      {31.5,14.0,90.0}};
+                      {31.5,12.0,90.0},
+                      {31.5,14.0,90.0} };
 
 const double x_home=31.5;
-const double y_home=4.0;
+const double y_home=4.5;
 const double theta_home=270.0;
 
 
@@ -45,7 +46,7 @@ int main(int argc, char** argv)
 
 	//determine spawn location, check AMCL callback
 	sub_amcl_pose = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
-	//ros::spinOnce();
+	ros::spinOnce();
 
 	for (int i=0; i<num_waypoints; i++)
 	{
@@ -53,6 +54,7 @@ int main(int argc, char** argv)
 		ROS_INFO_STREAM("Waypoint #"<<i+1);
 		moveToGoal(path[i][0], path[i][1], path[i][2]);
 
+        ros::spinOnce(); //check AMCL Callback
 		ROS_INFO_STREAM("X Position Error: "<<path[i][0]-x_current);
 		ROS_INFO_STREAM("Y Position Error: "<<path[i][1]-y_current);
 		ROS_INFO_STREAM("Next destination");
@@ -100,7 +102,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	ROS_INFO("Sending goal location ...");
 	ac.sendGoal(goal);
 
-		ac.waitForResult(ros::Duration(10.0));
+		ac.waitForResult(ros::Duration(30.0));
 
 	if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{

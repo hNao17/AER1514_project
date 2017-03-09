@@ -74,4 +74,8 @@ target_link_libraries(autoDock_test ${catkin_LIBRARIES})
 add_executable(autoDock_nav_test src/scripts/autoDock_nav_test.cpp)
 target_link_libraries(autoDock_nav_test ${catkin_LIBRARIES})
 
+#nav_test_withTimer
+add_executable(nav_test_withTimer src/scripts/nav_test_withTimer.cpp)
+target_link_libraries(nav_test_withTimer ${catkin_LIBRARIES})
+
 

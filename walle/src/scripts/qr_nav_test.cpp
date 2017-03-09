@@ -7,15 +7,14 @@
 #include <std_msgs/Int8.h>
 #include <std_msgs/String.h>
 #include <tf/tf.h>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 //global variables
-const double num_waypoints=5;
-const double dim_waypoint=3;
-double path [][3] = { {31.5,4.0,90.0},
-                      {31.5,5.0,90.0},
-		              {31.5,6.0,90.0},
-		              {31.5,7.0,90.0},
-                      {31.5,8.0,90.0}};
+const int num_waypoints=10;
+const int dim_waypoint=3;
+double path [num_waypoints][dim_waypoint];
 
 ros::Subscriber sub_amcl_pose;
 ros::Subscriber sub_visp_status;
@@ -32,16 +31,22 @@ int qr_detect_counter=0;
 
 
 /** function declarations **/
+void readWaypoints();
 void moveToGoal(double xGoal, double yGoal, double yawGoal);
+static tf::Quaternion toQuaternion(double pitch, double roll, double yaw);
+void scanRotate();
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL);
 void vispStatusCallback(const std_msgs::Int8& msgVispStatus);
 void vispWordCallback(const std_msgs::String& msgVispWord);
-void scanRotate();
+
 
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "qr_nav_test");
 	ros::NodeHandle nh;
+
+    //import waypoints from text file
+	readWaypoints();
 
 	//determine spawn location, check AMCL callback
 	sub_amcl_pose = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
@@ -60,6 +65,39 @@ int main(int argc, char** argv)
 		ROS_INFO_STREAM("Y Position Error: "<<path[i][1]-y_current);
 		ROS_INFO_STREAM("Next destination");
 	}
+}
+
+void readWaypoints()
+{
+    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints5.txt.csv");
+
+    double xPoint;
+    double yPoint;
+    double theta;
+    int waypointCounter=0;
+
+    if(infile.is_open())
+    {
+        while(infile>>xPoint>>yPoint>>theta)
+        {
+            path[waypointCounter][0]=xPoint;
+            path[waypointCounter][1]=yPoint;
+            path[waypointCounter][2]=theta;
+            waypointCounter++;
+        }
+
+        infile.close();
+
+        for(int i=0; i < num_waypoints; i++)
+        {
+            ROS_INFO_STREAM("X: "<<path[i][0]<<", Y: "<<path[i][1]<<", Theta: "<<path[i][2]);
+        }
+    }
+
+    else
+    {
+        ROS_INFO_STREAM("File is not open");
+    }
 }
 
 void moveToGoal(double xGoal, double yGoal, double yawGoal)
@@ -86,41 +124,9 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	goal.target_pose.pose.position.z =  0.0;
 
 	//convert degrees to quaternion
-	if(yawGoal == 0.0)
-    	{
-		goal.target_pose.pose.orientation.x = 0.0;
-		goal.target_pose.pose.orientation.y = 0.0;
-		goal.target_pose.pose.orientation.z = 0.0;
-		goal.target_pose.pose.orientation.w = 1.0;
-    	}
-	else if (yawGoal == 90.0)
-	{
-		goal.target_pose.pose.orientation.x = 0.0;
-		goal.target_pose.pose.orientation.y = 0.0;
-		goal.target_pose.pose.orientation.z = sqrt(2);
-		goal.target_pose.pose.orientation.w = sqrt(2);
-	}
-	else if(yawGoal == 180.0)
-	{
-		goal.target_pose.pose.orientation.x = 0.0;
-		goal.target_pose.pose.orientation.y = 0.0;
-		goal.target_pose.pose.orientation.z = 1.0;
-		goal.target_pose.pose.orientation.w = 0.009;
-	}
-    	else if(yawGoal == 270.0)
-	{
-		goal.target_pose.pose.orientation.x = 0.0;
-		goal.target_pose.pose.orientation.y = 0.0;
-		goal.target_pose.pose.orientation.z = sqrt(2);
-		goal.target_pose.pose.orientation.w = -sqrt(2);
-	}
-    	else if(yawGoal == 359.0)
-	{
-		goal.target_pose.pose.orientation.x = 0.0;
-		goal.target_pose.pose.orientation.y = 0.0;
-		goal.target_pose.pose.orientation.z = 0.0087;
-		goal.target_pose.pose.orientation.w = -1.0;
-	}
+    tf::Quaternion qQR;
+    qQR = toQuaternion(0,0,yawGoal);
+    quaternionTFToMsg(qQR, goal.target_pose.pose.orientation); // stores qQR in goal orientation
 
 	ROS_INFO("Sending goal location ...");
 	ac.sendGoal(goal);
@@ -140,29 +146,22 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 
 }
 
-void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
+static tf::Quaternion toQuaternion(double pitch, double roll, double yaw)
 {
+	//Quaterniond q;
+	double t0 = std::cos(yaw * 0.5);
+	double t1 = std::sin(yaw * 0.5);
+	double t2 = std::cos(roll * 0.5);
+	double t3 = std::sin(roll * 0.5);
+	double t4 = std::cos(pitch * 0.5);
+	double t5 = std::sin(pitch * 0.5);
 
-	tf::Quaternion q (msgAMCL.pose.pose.orientation.x,
-			 msgAMCL.pose.pose.orientation.y,
-             		 msgAMCL.pose.pose.orientation.z,
-               		 msgAMCL.pose.pose.orientation.w);
-
-	tf::Matrix3x3 m(q);
-	double roll, pitch, yaw;
-	m.getRPY(roll, pitch, yaw);
-
-	ROS_INFO_STREAM("Current turtlebot position: ("
-                   	       <<msgAMCL.pose.pose.position.x <<","
-			       <<msgAMCL.pose.pose.position.y <<","
-			       <<msgAMCL.pose.pose.position.z <<")");
-
-    	theta_current = yaw;
-
-	ROS_INFO_STREAM("Current turtlebot orientation: "<<theta_current<<" [radians]");
-
-	x_current = msgAMCL.pose.pose.position.x;
-	y_current = msgAMCL.pose.pose.position.y;
+//	q.w() = t0 * t2 * t4 + t1 * t3 * t5;
+//	q.x() = t0 * t3 * t4 - t1 * t2 * t5;
+//	q.y() = t0 * t2 * t5 + t1 * t3 * t4;
+//	q.z() = t1 * t2 * t4 - t0 * t3 * t5;
+	tf::Quaternion q(t0 * t3 * t4 - t1 * t2 * t5,t0 * t2 * t5 + t1 * t3 * t4,t1 * t2 * t4 - t0 * t3 * t5,t0 * t2 * t4 + t1 * t3 * t5);
+	return q;
 }
 
 void scanRotate()
@@ -241,6 +240,31 @@ void scanRotate()
 	//moving to next waypoint
     scanON = false;
 	ROS_INFO_STREAM("Finished QR detect");
+}
+
+void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
+{
+
+	tf::Quaternion q (msgAMCL.pose.pose.orientation.x,
+			 msgAMCL.pose.pose.orientation.y,
+             		 msgAMCL.pose.pose.orientation.z,
+               		 msgAMCL.pose.pose.orientation.w);
+
+	tf::Matrix3x3 m(q);
+	double roll, pitch, yaw;
+	m.getRPY(roll, pitch, yaw);
+
+	ROS_INFO_STREAM("Current turtlebot position: ("
+                   	       <<msgAMCL.pose.pose.position.x <<","
+			       <<msgAMCL.pose.pose.position.y <<","
+			       <<msgAMCL.pose.pose.position.z <<")");
+
+    	theta_current = yaw;
+
+	ROS_INFO_STREAM("Current turtlebot orientation: "<<theta_current<<" [radians]");
+
+	x_current = msgAMCL.pose.pose.position.x;
+	y_current = msgAMCL.pose.pose.position.y;
 }
 
 void vispStatusCallback(const std_msgs::Int8& msgVispStatus)
