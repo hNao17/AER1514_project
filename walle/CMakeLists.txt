@@ -61,8 +61,9 @@ target_link_libraries(nav_test4 ${catkin_LIBRARIES})
 add_executable(qr_nav_test src/scripts/qr_nav_test.cpp)
 target_link_libraries(qr_nav_test ${catkin_LIBRARIES})
 
-#add_executable(qr_pose src/scripts/qr_pose.cpp)
-#target_link_libraries(qr_pose ${catkin_LIBRARIES})
+#qr_pose
+add_executable(qr_pose src/scripts/qr_pose.cpp)
+target_link_libraries(qr_pose ${catkin_LIBRARIES})
 
 add_executable(qr_nav_test_vs src/scripts/qr_nav_test_vs.cpp)
 target_link_libraries(qr_nav_test_vs ${catkin_LIBRARIES})
