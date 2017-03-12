@@ -9,6 +9,19 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
+  message_generation
+)
+
+## Declare ROS messages and services
+add_message_files(
+	FILES
+	exploreState.msg
+)
+
+## Generate added messages and services
+generate_messages(
+	DEPENDENCIES 
+	std_msgs
 )
 
 catkin_package(
@@ -16,14 +29,10 @@ catkin_package(
 #  LIBRARIES lab_exams
 #  CATKIN_DEPENDS geometry_msgs message_generation roscpp rospy std_msgs
 #  DEPENDS system_lib
+	CATKIN_DEPENDS message_runtime std_msgs
 )
 
-## Declare ROS messages and services
-#add_message_files(DIRECTORY msg FILES )
 #add_service_files(DIRECTORY srv FILES )
-
-## Generate added messages and services
-#generate_messages(DEPENDENCIES std_msgs)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -70,8 +79,16 @@ target_link_libraries(cancelGoal_test ${catkin_LIBRARIES})
 add_executable(autoDock_test src/scripts/autoDock_test.cpp)
 target_link_libraries(autoDock_test ${catkin_LIBRARIES})
 
-#autoDock_test
+#autoDock_nav_test
 add_executable(autoDock_nav_test src/scripts/autoDock_nav_test.cpp)
 target_link_libraries(autoDock_nav_test ${catkin_LIBRARIES})
+
+#nav_test_withTimer
+add_executable(nav_test_withTimer src/scripts/nav_test_withTimer.cpp)
+target_link_libraries(nav_test_withTimer ${catkin_LIBRARIES})
+
+#time_test
+add_executable(time_test src/scripts/time_test.cpp)
+target_link_libraries(time_test ${catkin_LIBRARIES})
 
 
