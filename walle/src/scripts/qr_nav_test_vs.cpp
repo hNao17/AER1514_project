@@ -26,7 +26,7 @@ double x_current;
 double y_current;
 double theta_current;
 const double x_home=31.5;
-const double y_home=1.75;
+const double y_home=7.9;
 const double theta_home=90.0;
 const double maxDist_for_qr_approach = 5.0;
 
@@ -38,8 +38,8 @@ bool qrProcessing = false;
 int qr_detect_counter=0;
 
 //zigzag path
-const int num_waypoints=20;
-const int dim_waypoint=3;
+//const int num_waypoints=20;
+//const int dim_waypoint=3;
 //double path [num_waypoints][dim_waypoint];
 //double path [][3] = { {31.0,       8.57,       140.0},
 //                      {31.0,       8.57,      140.0},
@@ -47,11 +47,18 @@ const int dim_waypoint=3;
 //		              {32.1,       9.49,       140.0},
 //                      {31.0,       9.49,       140.0}};
 
-double path [][3] = { {31.0,       2.52,       140.0},
-                      {31.0,       2.52,      140.0},
-		              {31.0,       2.52,       40.00},
-		              {32.1,       3.44,       140.0},
-                      {31.0,       3.44,       140.0}};
+const int num_waypoints=10;
+const int dim_waypoint=3;
+double path [][3] = { {31.0,       8.57,       140.0},
+                      {31.0,       8.57,      40.0},
+		              {32.1,       9.49,       40.00},
+		              {32.1,       9.49,       140.0},
+                      {31.0,       10.41,       140.0},
+                      {31.0,       10.41,       40.0},
+                      {32.1,       11.33,       40.0},
+                      {32.1,       11.33,       140.0},
+                      {31.0,       12.25,       140.0},
+                      {31.0,       12.25,       40.0}};
 
 /** function declarations **/
 void moveToGoal(double xGoal, double yGoal, double yawGoal);
@@ -61,7 +68,7 @@ void vispWordCallback(const std_msgs::String& msgVispWord);
 void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose);
 void scanRotate();
 static tf::Quaternion toQuaternion(double pitch, double roll, double yaw);
-static bool qr_goal_calculate(tf::Vector3& qr_goal);
+static bool qr_goal_calculate(tf::Vector3& qr_goal,double& qr_approach_angle);
 static void toEulerianAngle(const tf::Quaternion& q, double& roll, double& pitch, double& yaw);
 void readWaypoints();
 
@@ -69,7 +76,7 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "qr_nav_test_vs");
 	ros::NodeHandle nh;
-    
+
 	sub_amcl_pose = nh.subscribe("amcl_pose",1000,poseAMCLCallback);
 	sub_visp_status = nh.subscribe("visp_auto_tracker/status",1000,vispStatusCallback);
 	sub_visp_word = nh.subscribe("visp_auto_tracker/code_message",100,vispWordCallback);
@@ -158,7 +165,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	goal.target_pose.pose.position.x =  xGoal;
 	goal.target_pose.pose.position.y =  yGoal;
 	goal.target_pose.pose.position.z =  0.0;
-    
+
     tf::Quaternion qQR;
 
     qQR = toQuaternion(0,0,yawGoal);
@@ -209,6 +216,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	ROS_INFO("Sending goal location ...");
 	ac.sendGoal(goal);
 
+	//ac.waitForResult(ros::Duration(30.0));
 	double start_time = ros::Time::now().toSec();
 	double current_time = start_time;
 
@@ -217,14 +225,23 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 		if(qr_detect_counter>=2)
 		{
 			tf::Vector3 qr_nav_goal(0,0,0);
-			bool qr_approachability_flag = qr_goal_calculate(qr_nav_goal);
+			double qr_approach_angle = 0;
+			bool qr_approachability_flag = qr_goal_calculate(qr_nav_goal,qr_approach_angle);
+
 			if(qr_approachability_flag==true)
 			{
 				move_base_msgs::MoveBaseGoal adhoc_goal;
-				adhoc_goal = goal; // orientation is maintained
+
+//				adhoc_goal = goal; // orientation is maintained
 				adhoc_goal.target_pose.pose.position.x =  qr_nav_goal.x();
 				adhoc_goal.target_pose.pose.position.y =  qr_nav_goal.y();
 				adhoc_goal.target_pose.pose.position.z =  0.0;
+
+				//goal orientation
+				tf::Quaternion qr_approach;
+				 qr_approach = toQuaternion(0,0,qr_approach_angle);
+				 quaternionTFToMsg(qr_approach, adhoc_goal.target_pose.pose.orientation); // stores qQR in goal orientation
+
 				ac.cancelGoal();
 				ac.sendGoal(adhoc_goal); //approach qr
 				ac.waitForResult(ros::Duration(10.0));
@@ -288,7 +305,7 @@ void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 
 	x_current = msgAMCL.pose.pose.position.x;
 	y_current = msgAMCL.pose.pose.position.y;
-    
+
 	base_pose.setX(msgAMCL.pose.pose.position.x);
 	base_pose.setY(msgAMCL.pose.pose.position.y);
     base_pose.setZ(0.0);
@@ -353,11 +370,11 @@ static void toEulerianAngle(const tf::Quaternion& q, double& roll, double& pitch
 
 	// yaw (z-axis rotation)
 	double t3 = +2.0 * (q.w() * q.z() + q.x() * q.y());
-	double t4 = +1.0 - 2.0 * (ysqr + q.z() * q.z());  
+	double t4 = +1.0 - 2.0 * (ysqr + q.z() * q.z());
 	yaw = std::atan2(t3, t4);
 }
 
-static bool qr_goal_calculate(tf::Vector3& qr_goal)
+static bool qr_goal_calculate(tf::Vector3& qr_goal,double& qr_approach_angle)
 {
     // request the transform between the two frames
 	  tf::TransformListener listener;
@@ -380,6 +397,8 @@ static bool qr_goal_calculate(tf::Vector3& qr_goal)
 		qr_goal = qr_pose + 0.75*approach_vector;
 		qr_goal.setZ(0.0); //Neglect the Height
 
+		// approach angle
+		qr_approach_angle = atan2(approach_vector.y(),approach_vector.x())+M_PI;
 
 		ROS_INFO_STREAM("Camera X in MAP Frame :"<<transform.getOrigin().x());
 		ROS_INFO_STREAM("Camera Y in MAP Frame :"<<transform.getOrigin().y());
@@ -404,6 +423,7 @@ static bool qr_goal_calculate(tf::Vector3& qr_goal)
 			ROS_INFO_STREAM("QR Goal X in MAP Frame :"<<qr_goal.x());
 			ROS_INFO_STREAM("QR Goal Y in MAP Frame :"<<qr_goal.y());
 			ROS_INFO_STREAM("QR Goal Z in MAP Frame :"<<qr_goal.z());
+			ROS_INFO_STREAM("QR Approach Angle in deg :"<<qr_approach_angle*180/M_PI);
 			ROS_INFO_STREAM("=====");
 			return true;
 		}
@@ -427,5 +447,5 @@ void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
 	qr_rel_pose.setX(msgVispPose.pose.position.x);
 	qr_rel_pose.setY(msgVispPose.pose.position.y);
 	qr_rel_pose.setZ(msgVispPose.pose.position.z);
-	
+
 }

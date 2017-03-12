@@ -1,3 +1,4 @@
+
 #include <ros/ros.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -25,7 +26,6 @@ ros::Subscriber sub_amcl;
 ros::Publisher pub_vel;
 double x_current;
 double y_current;
-double yaw_current;
 
 double scan_time=4.0;
 double current_time=0.0;
@@ -37,7 +37,6 @@ bool qrDetect = false;
 // the point, in the camera frame
 //tf::Vector3 point(x, y, z);
 tf::Vector3 qr_rel_pose(0, 0, 0);
-double qr_yaw;
 tf::Vector3 base_pose(0, 0, 0);
 
 // request the transform between the two frames
@@ -114,24 +113,12 @@ int main(int argc, char** argv)
 		tf::Vector3 qr_goal = qr_pose + 1*approach_vector;
 		qr_goal.setZ(0.0); //Neglect the Height
 
-		//Find orientation of Camera with respect to map
-
-
-		//Find orientation of QR with respect to Camera
-
-		// Approach angle
-		double qr_approach_angle = atan2(approach_vector.y(),approach_vector.x())+M_PI;
-
 		ROS_INFO_STREAM("Camera X in MAP Frame :"<<transform.getOrigin().x());
 		ROS_INFO_STREAM("Camera Y in MAP Frame :"<<transform.getOrigin().y());
 		ROS_INFO_STREAM("Camera Z in MAP Frame :"<<transform.getOrigin().z());
-		ROS_INFO_STREAM("Camera yaw (deg)in MAP Frame :"<<yaw_current*180/3.14);
 		ROS_INFO_STREAM("QR X in Camera Frame :"<<qr_rel_pose.x());
 		ROS_INFO_STREAM("QR Y in Camera Frame :"<<qr_rel_pose.y());
 		ROS_INFO_STREAM("QR Z in Camera Frame :"<<qr_rel_pose.z());
-//		ROS_INFO_STREAM("QR pitch in Camera Frame :"<<qr_roll);
-//		ROS_INFO_STREAM("QR roll in Camera Frame :"<<qr_pitch);
-		ROS_INFO_STREAM("QR yaw (deg) in Camera Frame :"<<qr_yaw*180/3.14);
 		ROS_INFO_STREAM("QR X in MAP Frame :"<<qr_pose.x());
 		ROS_INFO_STREAM("QR Y in MAP Frame :"<<qr_pose.y());
 		ROS_INFO_STREAM("QR Z in MAP Frame :"<<qr_pose.z());
@@ -141,7 +128,6 @@ int main(int argc, char** argv)
 		ROS_INFO_STREAM("QR Goal X in MAP Frame :"<<qr_goal.x());
 		ROS_INFO_STREAM("QR Goal Y in MAP Frame :"<<qr_goal.y());
 		ROS_INFO_STREAM("QR Goal Z in MAP Frame :"<<qr_goal.z());
-		ROS_INFO_STREAM("QR Approach Angle :"<<qr_approach_angle*180/3.14);
 		ROS_INFO_STREAM("=====");
 		ros::spinOnce();
 		rate.sleep();
@@ -207,14 +193,14 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 {
 
-	tf::Quaternion q (msgAMCL.pose.pose.orientation.x,
-			msgAMCL.pose.pose.orientation.y,
-			msgAMCL.pose.pose.orientation.z,
-			msgAMCL.pose.pose.orientation.w);
+	/*tf::Quaternion q (odom.pose.pose.orientation.x,
+			  odom.pose.pose.orientation.y,
+			  odom.pose.pose.orientation.z,
+			  odom.pose.pose.orientation.w);
 
 	tf::Matrix3x3 m(q);
 	double roll, pitch, yaw;
-	m.getRPY(roll, pitch, yaw);
+	m.getRPY(roll, pitch, yaw);*/
 
 	ROS_INFO_STREAM("Current turtlebot position: ("
                                <<msgAMCL.pose.pose.position.x <<","
@@ -226,7 +212,6 @@ void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 
 	x_current = msgAMCL.pose.pose.position.x;
 	y_current = msgAMCL.pose.pose.position.y;
-	yaw_current = yaw;
 
 	base_pose.setX(msgAMCL.pose.pose.position.x);
 	base_pose.setY(msgAMCL.pose.pose.position.y);
@@ -271,17 +256,6 @@ void vispPoseCallback(const geometry_msgs::PoseStamped& msgVispPose)
 	qr_rel_pose.setX(msgVispPose.pose.position.x);
 	qr_rel_pose.setY(msgVispPose.pose.position.y);
 	qr_rel_pose.setZ(msgVispPose.pose.position.z);
-	//qr_rel_orient = *msgVispPose.pose.orientation;
-	tf::Quaternion q (msgVispPose.pose.orientation.x,
-			msgVispPose.pose.orientation.y,
-			msgVispPose.pose.orientation.z,
-			msgVispPose.pose.orientation.w);
 
-		tf::Matrix3x3 m(q);
-		double roll, pitch, yaw;
-		m.getRPY(roll, pitch, yaw);
-		qr_yaw = pitch;
 }
-
-
 
