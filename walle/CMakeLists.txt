@@ -93,4 +93,9 @@ add_executable(time_test src/scripts/time_test.cpp)
 target_link_libraries(time_test ${catkin_LIBRARIES})
 add_dependencies(time_test walle_generate_message_cpp)
 
+#time_test_subscriber
+add_executable(time_test_subscriber src/scripts/time_test_subscriber.cpp)
+target_link_libraries(time_test_subscriber ${catkin_LIBRARIES})
+add_dependencies(time_test_subscriber walle_generate_message_cpp)
+
 
