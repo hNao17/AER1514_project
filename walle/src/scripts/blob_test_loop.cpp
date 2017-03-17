@@ -4,6 +4,7 @@
  * Copyright 2015 by Satya Mallick <spmallick@gmail.com>
  * modified by Kasper and Venu
  *
+ * requires images dock0.png to dock5.png in the same directoy
  */
 
 #include "opencv2/opencv.hpp"
@@ -16,7 +17,7 @@ using namespace std;
 Mat filtering(Mat input)
 {
     Mat image2; 
-    Mat image3 = Mat::zeros( input.size(), input.type() );
+//    Mat image3 = Mat::zeros( input.size(), input.type() );
     
     cv::Size ksize;
     ksize.height = 9;
@@ -27,17 +28,19 @@ Mat filtering(Mat input)
     
     GaussianBlur(input, image2, ksize, 1, 0);
     
-    for( int y = 0; y < input.rows; y++ )
-        { for( int x = 0; x < input.cols; x++ )
-            { for( int c = 0; c < 3; c++ )
-                {
-        image3.at<Vec3b>(y,x)[c] =
-            saturate_cast<uchar>( alpha*( image2.at<Vec3b>(y,x)[c] ) + beta );
-             }
-        }
-        }
+    image2.convertTo(image2, -1, alpha, beta);
     
-    return image3;
+//    for( int y = 0; y < input.rows; y++ )
+//        { for( int x = 0; x < input.cols; x++ )
+//            { for( int c = 0; c < 3; c++ )
+//                {
+//        image3.at<Vec3b>(y,x)[c] =
+//            saturate_cast<uchar>( alpha*( image2.at<Vec3b>(y,x)[c] ) + beta );
+//             }
+//        }
+//        }
+    
+    return image2;
 }
 
 int main( int argc, char** argv )
@@ -89,7 +92,7 @@ int main( int argc, char** argv )
     for (int f=0; f<6; f++)
     {
         stringstream ss;
-        //dock images dock0.png to dock6.png must be in same directory
+        //dock images dock0.png to dock5.png must be in same directory
         ss << "dock" << f << ".png" << endl;  
 
         string fullfileName;
@@ -104,7 +107,7 @@ int main( int argc, char** argv )
          //Read image
         im = imread(images[i], IMREAD_GRAYSCALE );
  
-        //im = filtering(im);
+        im = filtering(im);
         //this function still seg faults
 
         // Detect blobs
