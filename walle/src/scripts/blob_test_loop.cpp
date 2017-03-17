@@ -26,9 +26,14 @@ Mat filtering(Mat input)
     double alpha = 2.0;
     int beta = 50;
     
+    //apply gaussian blur to the image
     GaussianBlur(input, image2, ksize, 1, 0);
     
+    //apply contrast filter to the image
     image2.convertTo(image2, -1, alpha, beta);
+    
+    //crop out the top 1/3 of the image, as the dock won't be there
+    Mat croppedImage = image2(Rect(0,image2.rows/3,image2.cols,image2.rows*2/3));
     
 //    for( int y = 0; y < input.rows; y++ )
 //        { for( int x = 0; x < input.cols; x++ )
@@ -40,7 +45,7 @@ Mat filtering(Mat input)
 //        }
 //        }
     
-    return image2;
+    return croppedImage;
 }
 
 int main( int argc, char** argv )
