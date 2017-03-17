@@ -66,7 +66,7 @@ target_link_libraries(qr_nav_test_vs ${catkin_LIBRARIES})
 add_executable(qr_nav_test_rotatedLaptop src/scripts/qr_nav_test_rotatedLaptop.cpp)
 target_link_libraries(qr_nav_test_rotatedLaptop ${catkin_LIBRARIES})
 
-#qr_nav_test_rotatedLaptop
+#cancelGoal_test
 add_executable(cancelGoal_test src/scripts/cancelGoal_test.cpp)
 target_link_libraries(cancelGoal_test ${catkin_LIBRARIES})
 
@@ -85,5 +85,17 @@ target_link_libraries(nav_test_withTimer ${catkin_LIBRARIES})
 #videoFilter
 add_executable(videoFilter src/scripts/videoFilter.cpp)
 target_link_libraries(videoFilter ${catkin_LIBRARIES})
+
+#qr_nav_test_zbar
+add_executable(qr_nav_test_zbar src/scripts/qr_nav_test_zbar.cpp)
+target_link_libraries(qr_nav_test_zbar ${catkin_LIBRARIES})
+
+#time_test.cpp
+add_executable(time_test src/scripts/time_test.cpp)
+target_link_libraries(time_test ${catkin_LIBRARIES})
+
+#time_test_subscriber.cpp
+add_executable(time_test_subscriber src/scripts/time_test_subscriber.cpp)
+target_link_libraries(time_test_subscriber ${catkin_LIBRARIES})
 
 

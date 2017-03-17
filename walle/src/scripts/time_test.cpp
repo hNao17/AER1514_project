@@ -1,5 +1,6 @@
 #include <ros/ros.h>
-#include "walle/exploreState.h"
+#include <std_msgs/Bool.h>
+//#include "walle/exploreState.h"
 //#include<rosgraph_msgs/Clock.h>
 //#include <wall_timer.h>
 
@@ -13,12 +14,14 @@ int main(int argc, char** argv)
     ros::init(argc,argv,"time_test");
     ros::NodeHandle nh;
 
-    pub=nh.advertise<walle::exploreState>("/publishMsg",1000);
+    //pub=nh.advertise<walle::exploreState>("/publishMsg",1000);
+    pub=nh.advertise<std_msgs::Bool>("/exploreStatus",1000);
 
     double start_time = ros::Time::now().toSec();
     double current_time;
 
-    walle::exploreState msg;
+    //walle::exploreState msg;
+    std_msgs::Bool msg;
 
     ros::Rate rate(10);
     while(time_exceeded==false)
@@ -29,7 +32,8 @@ int main(int argc, char** argv)
             time_exceeded = true;
 
         //publish message
-        msg.return_home=time_exceeded;
+        //msg.return_home=time_exceeded;
+        msg.data = time_exceeded;
         pub.publish(msg);
         ROS_INFO_STREAM("Elasped Time = "<<current_time-start_time<<"[s]");
     }
