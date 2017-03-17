@@ -51,7 +51,7 @@ int main( int argc, char** argv )
 
 	// Change thresholds
 	params.minThreshold = 0;
-	params.maxThreshold = 245;
+	params.maxThreshold = 175;
     
     //filter by color
     params.filterByColor = true;
@@ -72,9 +72,9 @@ int main( int argc, char** argv )
 	params.minConvexity = 0.1;
 
 	// Filter by Inertia
-	params.filterByInertia = false;
-    params.minInertiaRatio = 0.1;
-	params.maxInertiaRatio = 0.5;
+	params.filterByInertia = true;
+    params.minInertiaRatio = 0.15;
+	//params.maxInertiaRatio = 0.5;
     
     string images[7];
     Mat im;
