@@ -98,4 +98,8 @@ add_executable(time_test_subscriber src/scripts/time_test_subscriber.cpp)
 target_link_libraries(time_test_subscriber ${catkin_LIBRARIES})
 add_dependencies(time_test_subscriber walle_generate_message_cpp)
 
+#qr_nav_test_zbar
+add_executable(qr_nav_test_zbar src/scripts/qr_nav_test_zbar.cpp)
+target_link_libraries(qr_nav_test_zbar ${catkin_LIBRARIES})
+
 
