@@ -9,19 +9,9 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
-  message_generation
-)
-
-## Declare ROS messages and services
-add_message_files(
-	FILES
-	exploreState.msg
-)
-
-## Generate added messages and services
-generate_messages(
-	DEPENDENCIES 
-	std_msgs
+  sensor_msgs
+  cv_bridge
+  image_transport
 )
 
 catkin_package(
@@ -29,10 +19,14 @@ catkin_package(
 #  LIBRARIES lab_exams
 #  CATKIN_DEPENDS geometry_msgs message_generation roscpp rospy std_msgs
 #  DEPENDS system_lib
-	CATKIN_DEPENDS message_runtime std_msgs
 )
 
+## Declare ROS messages and services
+#add_message_files(DIRECTORY msg FILES )
 #add_service_files(DIRECTORY srv FILES )
+
+## Generate added messages and services
+#generate_messages(DEPENDENCIES std_msgs)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -72,7 +66,7 @@ target_link_libraries(qr_nav_test_vs ${catkin_LIBRARIES})
 add_executable(qr_nav_test_rotatedLaptop src/scripts/qr_nav_test_rotatedLaptop.cpp)
 target_link_libraries(qr_nav_test_rotatedLaptop ${catkin_LIBRARIES})
 
-#qr_nav_test_rotatedLaptop
+#cancelGoal_test
 add_executable(cancelGoal_test src/scripts/cancelGoal_test.cpp)
 target_link_libraries(cancelGoal_test ${catkin_LIBRARIES})
 
@@ -80,7 +74,7 @@ target_link_libraries(cancelGoal_test ${catkin_LIBRARIES})
 add_executable(autoDock_test src/scripts/autoDock_test.cpp)
 target_link_libraries(autoDock_test ${catkin_LIBRARIES})
 
-#autoDock_nav_test
+#autoDock_test
 add_executable(autoDock_nav_test src/scripts/autoDock_nav_test.cpp)
 target_link_libraries(autoDock_nav_test ${catkin_LIBRARIES})
 
@@ -88,14 +82,16 @@ target_link_libraries(autoDock_nav_test ${catkin_LIBRARIES})
 add_executable(nav_test_withTimer src/scripts/nav_test_withTimer.cpp)
 target_link_libraries(nav_test_withTimer ${catkin_LIBRARIES})
 
-#time_test
+#videoFilter
+add_executable(videoFilter src/scripts/videoFilter.cpp)
+target_link_libraries(videoFilter ${catkin_LIBRARIES})
+
+#qr_nav_test_zbar
+add_executable(qr_nav_test_zbar src/scripts/qr_nav_test_zbar.cpp)
+target_link_libraries(qr_nav_test_zbar ${catkin_LIBRARIES})
+
+#time_test.cpp
 add_executable(time_test src/scripts/time_test.cpp)
 target_link_libraries(time_test ${catkin_LIBRARIES})
-add_dependencies(time_test walle_generate_message_cpp)
-
-#time_test_subscriber
-add_executable(time_test_subscriber src/scripts/time_test_subscriber.cpp)
-target_link_libraries(time_test_subscriber ${catkin_LIBRARIES})
-add_dependencies(time_test_subscriber walle_generate_message_cpp)
 
 
