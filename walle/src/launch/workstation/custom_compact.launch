@@ -2,15 +2,11 @@
 <launch>
 
   <!-- modify below as requred-->
-  <node name="supervisor" pkg="walle" type="supervisor"/>
+  <node name="supervisor" pkg="walle" type="supervisor_node" output = "screen" launch-prefix= "xterm -e"/>
 
-  <node name="qrLinkedList" pkg="walle" type="qrLinkedList"/>
+  <node name="navigation" pkg="walle" type="navigation_node" output = "screen" launch-prefix= "xterm -e">
 
-  <node name="navigation" pkg="walle" type="navigation"/>
-
-  <node name="autoDocking" pkg="walle" type="autoDocking"/>
+  <node name="autoDocking" pkg="walle" type="autoDocking_node" output = "screen" launch-prefix= "xterm -e">
 
 
-
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find turtlebot_rviz_launchers)/rviz/navigation.rviz"/>
 </launch>

@@ -1,6 +1,6 @@
 #include <ros/ros.h>
-#include "qrLinkedList.h"
-#include "qrLinkedList.cpp"
+#include "../qrLinkedList.h"
+#include "../qrLinkedList.cpp"
 
 int main(int argc, char** argv)
 {

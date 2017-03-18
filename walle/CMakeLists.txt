@@ -114,4 +114,8 @@ target_link_libraries(autoDocking ${catkin_LIBRARIES})
 add_executable(supervisor src/scripts/supervisor.cpp)
 target_link_libraries(supervisor ${catkin_LIBRARIES})
 
+#supervisor_linkedList_test.cpp
+add_executable(supervisor_linkedList_test src/scripts/Drafts/supervisor_linkedList_test.cpp)
+target_link_libraries(supervisor_linkedList_test ${catkin_LIBRARIES})
+
 
