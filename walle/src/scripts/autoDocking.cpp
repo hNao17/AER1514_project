@@ -32,14 +32,15 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh2;
 
 	//subscriber to dockStart topic
-	sub_dockONStatus = nh2.subscribe("dockON_status",1000,docking_callback);
+	sub_dockONStatus = nh2.subscribe("dockON_Status",1000,docking_callback);
 
 	//publisher to dockStatus topic
-	pub_dockingStatus = nh2.advertise<std_msgs::Bool>("/dockStatus",1000);
+	pub_dockingStatus = nh2.advertise<std_msgs::Bool>("/dockingStatus",1000);
 
 	ros::Rate rate(10);
 	while(!dockON)
     {
+        ROS_INFO_STREAM("Waiting for Docking approval");
         ros::spinOnce();
     }
 

@@ -51,7 +51,7 @@ bool qrLinkedList::insertNode(qrNode* newNode)
             //add new node to the next position in the list
             temp->next = newNode;
             newNode->next = NULL;
-            ROS_INFO_STREAM("Sucessfully inserted qr node at end of list");
+            ROS_INFO_STREAM("Sucessfully inserted "<<temp->word<<" at end of list");
             listLength++;
             return true;
         }
@@ -70,6 +70,12 @@ bool qrLinkedList::searchList(std::string newQRWord)
     qrNode* index=head;
     qrNode* temp=index;
 
+    if(listLength <=0)
+    {
+        ROS_WARN_STREAM("List is empty");
+        return false;
+    }
+
     //search list until qrNode->next == NULL
     while(index)
     {
@@ -78,7 +84,7 @@ bool qrLinkedList::searchList(std::string newQRWord)
         //determine if qr word is already in the list
         if(temp->word == newQRWord)
         {
-            ROS_WARN_STREAM("Word already exists in the list.  Do not insert qr node.");
+            ROS_WARN_STREAM(newQRWord<<" already exists in the list.  Do not insert qr node.");
             return true;
         }
 
@@ -92,6 +98,12 @@ bool qrLinkedList::searchList(std::string newQRWord)
 
 void qrLinkedList::printWordList()
 {
+    if(listLength <=0)
+    {
+        ROS_WARN_STREAM("List is empty, cannot print list");
+        return;
+    }
+
     qrNode* index=head;
     qrNode* temp=head;
 

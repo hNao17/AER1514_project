@@ -6,31 +6,27 @@
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
-#include <string>
+#include "qrLinkedList.h"
+#include "qrLinkedList.cpp"
 
 /** Global Variables **/
 bool time_exceeded = false;
 bool startDock = false;
 bool printList = false;
+double allowable_time = 600.0;
 
-double allowable_time = 60.0;
-
-const int listSize = 50;
-std::string qrList[listSize];
-int listCounter=0;
-
-ros::Subscriber sub_barcode;
+//ros::Subscriber sub_barcode;
 ros::Subscriber sub_atHomeStatus;
 ros::Subscriber sub_dockingStatus;
 ros::Publisher pub_exploreStatus;
 ros::Publisher pub_dockONStatus;
 
+
+
 /** Function Declarations **/
-void barcode_callback(const std_msgs::String& zbarWord);
+//void barcode_callback(const std_msgs::String& zbarWord);
 void atHome_callback(const std_msgs::Bool& msg_atHome);
 void dockingStatus_callback(const std_msgs::Bool& msg_atDock);
-bool searchList(std::string word);
-void printWordList();
 
 int main(int argc, char** argv)
 {
@@ -38,8 +34,9 @@ int main(int argc, char** argv)
     ros::NodeHandle nh3;
 
     ROS_INFO_STREAM("Starting Supervisor node");
+    qrLinkedList* l=new qrLinkedList();
     //subscribe to barcode, atHomeStatus, dockingStatus
-    sub_barcode = nh3.subscribe("barcode",1000,barcode_callback);
+    //sub_barcode = nh3.subscribe("barcode",1000,barcode_callback);
     sub_atHomeStatus = nh3.subscribe("atHomeStatus",1000,atHome_callback);
     sub_dockingStatus = nh3.subscribe("dockingStatus",1000,dockingStatus_callback);
 
@@ -58,12 +55,11 @@ int main(int argc, char** argv)
     /*set exploreState to OFF when the allowable explore time has been exceeded and
     at least 1 qr code has been found */
     ros::Rate rate(10);
-    ROS_INFO_STREAM("Current Robot State: EXPLORE");
     while(!time_exceeded)
     {
+        ROS_INFO_STREAM("Current Robot State: EXPLORE");
         current_time=ros::Time::now().toSec();
-        //ROS_INFO_STREAM("Elasped Time = "<<current_time-start_time<<"[s]");
-        ROS_INFO_STREAM("Number of Words = "<<listCounter);
+        ROS_INFO_STREAM("Elasped Time = "<<current_time-start_time<<"[s]");
 
         if(current_time-start_time > allowable_time)
         {
@@ -82,9 +78,9 @@ int main(int argc, char** argv)
     }
 
 
-    ROS_INFO_STREAM("Current Robot State: RETURN_HOME");
     while(!startDock)
     {
+        ROS_INFO_STREAM("Current Robot State: RETURN_HOME");
         ros::spinOnce();
         msg_dockON.data = startDock;
         pub_dockONStatus.publish(msg_dockON);
@@ -93,43 +89,44 @@ int main(int argc, char** argv)
 
     ROS_INFO_STREAM("Turning RETURN_HOME off");
 
-    ROS_INFO_STREAM("Current Robot State: AUTODOCKING");
     while(!printList)
     {
+        ROS_INFO_STREAM("Current Robot State: AUTODOCKING");
         ros::spinOnce();
 
     }
     //robot is docked; print qr list
     ROS_INFO_STREAM("Turning AUTODOCKING off");
     ROS_INFO_STREAM("Current Robot State: PRINT_QRLIST");
-
-    printWordList();
+    //l.printWordList();
 
     ros::spin();
 
 }
 
-void barcode_callback(const std_msgs::String& zbarWord)
+/*void barcode_callback(const std_msgs::String& zbarWord)
 {
     bool duplicate;
-    int i=0;
+    qrNode* q=new qrNode;
 
     //only check "non-space" string values
     if(zbarWord.data!="")
     {
-      duplicate = searchList(zbarWord.data);
+       duplicate = l.searchList(zbarWord.data);
 
        //only add the new word to the list if it hasn't already been found
        if(!duplicate)
        {
-           qrList[listCounter]=zbarWord.data;
-           ROS_INFO_STREAM("Successfully added "<<qrList[listCounter]<<" to list");
-           listCounter++;
+           q->position_x = -1;
+           q->position_y = -1;
+           q->word = zbarWord.data;
+
+           l.insertNode(q);
        }
     }
 
-    ROS_INFO_STREAM("# of QR Codes: "<<listCounter);
-}
+    ROS_INFO_STREAM("# of QR Codes: "<<l.getSize());
+}*/
 
 void atHome_callback(const std_msgs::Bool& msg_atHome)
 {
@@ -145,40 +142,4 @@ void dockingStatus_callback(const std_msgs::Bool& msg_atDock)
         ROS_INFO_STREAM("AUTODOCKING state is still active");
     else
         printList = true;
-}
-
-bool searchList(std::string word)
-{
-    if(listCounter==0)
-    {
-        ROS_INFO_STREAM("List is empty.");
-        return false;
-    }
-
-    for(int i = 0; i < listCounter; i++)
-    {
-        if(qrList[i]==word)
-        {
-            ROS_INFO_STREAM(word<<" already exists in list. Do not add.");
-            return true;
-        }
-    }
-
-    ROS_INFO_STREAM(word<<" does not exist in list");
-    return false;
-
-}
-
-void printWordList()
-{
-    if(listCounter==0)
-        ROS_INFO_STREAM("List is empty");
-    else
-    {
-        for(int i = 0; i < listCounter; i++)
-        {
-            ROS_INFO_STREAM("Word "<<i+1<<": "<<qrList[i]);
-        }
-    }
-
 }

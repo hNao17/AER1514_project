@@ -21,11 +21,11 @@ double path [num_waypoints][dim_waypoint];
 
 bool exploreON = true;
 bool returnHome = false;
-double allowable_time = 90.0;
+bool atHome= false;
 
 const double x_home=31.5;
 const double y_home=4.0;
-const double theta_home=90.0;
+const double theta_home=0.0;
 
 ros::Subscriber sub_pose;
 ros::Subscriber sub_exploreStatus;
@@ -33,8 +33,6 @@ ros::Publisher pub_atHomeStatus;
 
 double x_current;
 double y_current;
-
-
 
 /** function declarations **/
 void readWaypoints();
@@ -62,7 +60,7 @@ int main(int argc, char** argv)
 
 	int i=0;
 
-    while(i<num_waypoints || exploreON==true)
+    while(i<num_waypoints && exploreON==true)
 	{
 		//position command
 		ROS_INFO_STREAM("Waypoint #"<<i+1);
@@ -77,13 +75,18 @@ int main(int argc, char** argv)
 		i++;
 	}
 
-	returnHome = true;
-    ROS_INFO_STREAM("Exploration complete. Going home.");
-    moveToGoal(x_home,y_home,theta_home);
     ROS_INFO_STREAM("Number of waypoints visted: "<<i);
+    returnHome = true;
+
+    while(!atHome)
+    {
+        ROS_INFO_STREAM("Exploration complete. Going home.");
+        moveToGoal(x_home,y_home,theta_home);
+    }
+
 
     std_msgs::Bool msg_atHome;
-    msg_atHome.data=true;
+    msg_atHome.data=atHome;
     pub_atHomeStatus.publish(msg_atHome);
 
     //navigation is complete; leave node in idle state
@@ -94,7 +97,7 @@ int main(int argc, char** argv)
 
 void readWaypoints()
 {
-    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints6.txt.csv");
+    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints8.txt.csv");
 
     double xPoint;
     double yPoint;
@@ -173,6 +176,9 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
         if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
         {
             ROS_INFO("You have reached the destination");
+
+            if(returnHome)
+                atHome = true;
         }
         else
         {

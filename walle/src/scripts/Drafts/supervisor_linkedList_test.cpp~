@@ -7,9 +7,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "supervisor_linkedList_test");
 	ros::NodeHandle nh;
 
-	qrLinkedList l;
-
-	qrNode* a=new qrNode;
+	/*qrNode* a=new qrNode;
 
 	a->position_x=10;
 	a->position_y=10;
@@ -34,16 +32,16 @@ int main(int argc, char** argv)
 
 	d->word="venu";
 	d->position_x=40;
-	d->position_y=20;
+	d->position_y=20;*/
 
-
+	
 
 	/*l.insertNode(a);
 	l.insertNode(b);
-
+	
 	l.insertNode(d);*/
-
-
+	
+	qrLinkedList l;
 	l.searchList(c->word);
 	ROS_INFO_STREAM("# of QR Codes: "<<l.getSize());
 	ROS_INFO_STREAM("Node D: "<<"("<<d->position_x<<","<<d->position_y<<")");
