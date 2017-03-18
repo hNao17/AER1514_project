@@ -94,4 +94,13 @@ target_link_libraries(qr_nav_test_zbar ${catkin_LIBRARIES})
 add_executable(time_test src/scripts/time_test.cpp)
 target_link_libraries(time_test ${catkin_LIBRARIES})
 
+#time_test_subscriber.cpp
+add_executable(time_test_subscriber src/scripts/time_test_subscriber.cpp)
+target_link_libraries(time_test_subscriber ${catkin_LIBRARIES})
+
+#supervisor_linkedList_test.cpp
+add_executable(supervisor_linkedList_test src/scripts/supervisor_linkedList_test.cpp)
+target_link_libraries(supervisor_linkedList_test ${catkin_LIBRARIES})
+
+
 
