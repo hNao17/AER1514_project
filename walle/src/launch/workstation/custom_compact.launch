@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- dummy values, must be filled in-->
+  <node name="supervisor" pkg="walle" type="supervisor"/>
+
+  <node name="qrList" pkg="walle" type="qrLinkedList"/>
+
+  <node name="navigation" pkg="walle" type="map_navigation"/>
+
+  <node name="autoDock" pkg="walle" type="autoDock_nav"/>
+
+
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find turtlebot_rviz_launchers)/rviz/navigation.rviz"/>
+</launch>
