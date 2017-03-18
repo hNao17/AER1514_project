@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <launch>
 
-  <!-- dummy values, must be filled in-->
+  <!-- modify below as requred-->
   <node name="supervisor" pkg="walle" type="supervisor"/>
 
-  <node name="qrList" pkg="walle" type="qrLinkedList"/>
+  <node name="qrLinkedList" pkg="walle" type="qrLinkedList"/>
 
-  <node name="navigation" pkg="walle" type="map_navigation"/>
+  <node name="navigation" pkg="walle" type="navigation"/>
 
-  <node name="autoDock" pkg="walle" type="autoDock_nav"/>
+  <node name="autoDocking" pkg="walle" type="autoDocking"/>
 
 
 
