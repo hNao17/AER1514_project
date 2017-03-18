@@ -15,7 +15,7 @@
 #include <std_msgs/Bool.h>
 
 /**Global Variables**/
-const int num_waypoints=26;
+const int num_waypoints=50;
 const int dim_waypoint=3;
 double path [num_waypoints][dim_waypoint];
 
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 
 void readWaypoints()
 {
-    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints5.txt.csv");
+    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints6.txt.csv");
 
     double xPoint;
     double yPoint;

@@ -2,11 +2,11 @@
 <launch>
 
   <!-- modify below as requred-->
-  <node name="supervisor" pkg="walle" type="supervisor_node" output = "screen" launch-prefix= "xterm -e"/>
+  <node name="supervisor" pkg="walle" type="supervisor" output = "screen" launch-prefix= "xterm -e"/>
 
-  <node name="navigation" pkg="walle" type="navigation_node" output = "screen" launch-prefix= "xterm -e">
+  <node name="navigation" pkg="walle" type="navigation" output = "screen" launch-prefix= "xterm -e">
 
-  <node name="autoDocking" pkg="walle" type="autoDocking_node" output = "screen" launch-prefix= "xterm -e">
+  <node name="autoDocking" pkg="walle" type="autoDocking" output = "screen" launch-prefix= "xterm -e">
 
 
 </launch>
