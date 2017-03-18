@@ -110,14 +110,14 @@ void barcode_callback(const std_msgs::String& zbarWord)
     //only check "non-space" string values
     if(zbarWord.data!="")
     {
-       duplicate = l.searchList();
+       duplicate = l.searchList(zbarWord.data);
 
        //only add the new word to the list if it hasn't already been found
        if(!duplicate)
        {
            q->position_x = -1;
            q->position_y = -1;
-           q->word = zbarWord;
+           q->word = zbarWord.data;
 
            l.insertNode(q);
        }
