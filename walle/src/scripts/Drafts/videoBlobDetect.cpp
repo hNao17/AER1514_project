@@ -112,13 +112,22 @@ public:
     //Crop away top 1/3 of image
     croppedImage = image2(Rect(0,image2.rows/3,image2.cols,image2.rows*2/3));
     
+    //croppedImage = cv_ptr->image(Rect(0,cv_ptr->image.rows/3,cv_ptr->image.cols,cv_ptr->image.rows*2/3));
+    
     //Re-assign the cropped image
     //cv_ptr->image = croppedImage;
     
     //Detect blobs
     detector.detect(croppedImage,keypoints);
     
+    for(vector<KeyPoint>::iterator blobIterator = keypoints.begin(); blobIterator != keypoints.end(); blobIterator++){
+      ROS_INFO_STREAM("size of blob is: " << blobIterator->size);
+      ROS_INFO_STREAM("point is at: " << blobIterator->pt.x << " " << blobIterator->pt.y);
+    } 
+    
     drawKeypoints(croppedImage, keypoints, cv_ptr->image, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+    
+    
 
 
     // Update GUI Window

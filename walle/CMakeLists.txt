@@ -102,6 +102,10 @@ include_directories(
 #add_executable(supervisor_linkedList_test src/scripts/supervisor_linkedList_test.cpp)
 #target_link_libraries(supervisor_linkedList_test ${catkin_LIBRARIES})
 
+#videoBlobDetect.cpp
+add_executable(videoBlobDetect src/scripts/Drafts/videoBlobDetect.cpp)
+target_link_libraries(videoBlobDetect ${catkin_LIBRARIES})
+
 #navigation.cpp
 add_executable(navigation src/scripts/navigation.cpp)
 target_link_libraries(navigation ${catkin_LIBRARIES})
@@ -113,9 +117,5 @@ target_link_libraries(autoDocking ${catkin_LIBRARIES})
 #supervisor.cpp
 add_executable(supervisor src/scripts/supervisor.cpp)
 target_link_libraries(supervisor ${catkin_LIBRARIES})
-
-#supervisor_linkedList_test.cpp
-add_executable(supervisor_linkedList_test src/scripts/Drafts/supervisor_linkedList_test.cpp)
-target_link_libraries(supervisor_linkedList_test ${catkin_LIBRARIES})
 
 
