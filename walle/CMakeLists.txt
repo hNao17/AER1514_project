@@ -106,6 +106,10 @@ include_directories(
 add_executable(videoBlobDetect src/scripts/Drafts/videoBlobDetect.cpp)
 target_link_libraries(videoBlobDetect ${catkin_LIBRARIES})
 
+#dockDetect.cpp
+add_executable(dockDetect src/scripts/dockDetect.cpp)
+target_link_libraries(dockDetect ${catkin_LIBRARIES})
+
 #navigation.cpp
 add_executable(navigation src/scripts/navigation.cpp)
 target_link_libraries(navigation ${catkin_LIBRARIES})
