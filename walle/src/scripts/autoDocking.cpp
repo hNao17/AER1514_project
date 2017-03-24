@@ -1,4 +1,5 @@
 //Created 2017-03-17
+//Updated 2017-03-22
 //Node that allows Turtlebot to perform auto-docking with kobuki docking station
 ////////////////////////////////////////////////////////////////////////////////
 #include <ros/ros.h>
@@ -10,21 +11,41 @@
 #include <tf/tf.h>
 #include <kobuki_msgs/AutoDockingAction.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Float32.h>
 
 /** Global Variables **/
 bool dockON = false;
 bool docking_complete = false;
 
 ros::Subscriber sub_dockONStatus;
+ros::Subscriber sub_x_position_err;
+ros::Subscriber sub_size;
 ros::Publisher pub_dockingStatus;
+ros::Publisher pub_vel;
+
+const double vel_x = 0.2;
+const double k_theta = 1.0;
+const double size_threshold = 45.0;
+float blob_size;
+double error_posX;
+bool blobDetect;
+
+const double dock_startX = 4.5;
+const double dock_startY = 31.0;
+const double dock_startTheta = 0.0;
+double x_current;
+double y_current;
 
 /** Function Declarations **/
 bool moveToDock();
+void moveToGoal(double xGoal, double yGoal, double yawGoal);
+void visualPositioning(double posX_error);
+static tf::Quaternion toQuaternion(double pitch, double roll, double yaw);
 void docking_callback(const std_msgs::Bool& msg_startDocking);
-//void moveToGoal(double xGoal, double yGoal, double yawGoal);
-//static tf::Quaternion toQuaternion(double pitch, double roll, double yaw);
-//void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL);
-
+void dockError_callback(const std_msgs::Float32& msg_dockError);
+void dockSize_callback(const std_msgs::Float32& msg_blobSize);
+void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL);
+//callback function for blobDetect_ON from supervisor
 
 int main(int argc, char** argv)
 {
@@ -33,9 +54,13 @@ int main(int argc, char** argv)
 
 	//subscriber to dockStart topic
 	sub_dockONStatus = nh2.subscribe("dockON_Status",1000,docking_callback);
+	sub_x_position_err = nh2.subscribe("dockDetect/x_position_err",1000,dockError_callback);
+	sub_size = nh2.subscribe("dockDetect/size",1000,dockSize_callback);
+    //subscriber to blobDetect_ON from supervisor
 
-	//publisher to dockStatus topic
+	//publisher to dockStatus, geometry/Twist topics
 	pub_dockingStatus = nh2.advertise<std_msgs::Bool>("/dockingStatus",1000);
+	pub_vel = nh2.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
 
 	ros::Rate rate(10);
 	while(!dockON)
@@ -59,19 +84,33 @@ int main(int argc, char** argv)
     //robot failed to dock on first attempt
     else
     {
-        //keep attempting auto-docking until sucessful
+        pub_dockingStatus.publish(msg_atDock);
+
+        //keep attempting auto-docking until successful
         while(!docking_complete)
         {
 
-            msg_atDock.data = docking_complete;
+            //return to dock_start position
+            //while(!blobDetect)
+            //{
+                moveToGoal(dock_startX, dock_startY, dock_startTheta);
+            //}
 
+            //Turtlebot is now at random/home position
+            //Move Turtlebot along a straight line b/t the docking station and random point
+            //Stop when the docking station pixel size occupies a majority of the camera plane
+            while(blob_size < size_threshold)
+            {
+                visualPositioning(error_posX);
+                ros::spinOnce();
+            }
+
+            //robot is ready to commence auto-docking again
+            docking_complete=moveToDock();
+            msg_atDock.data = docking_complete;
             pub_dockingStatus.publish(msg_atDock);
 
-            //perform visual servoing
-            //reposition robot if necessary
-
             ros::spinOnce();
-            docking_complete=moveToDock();
         }
     }
 
@@ -108,6 +147,78 @@ bool moveToDock()
     }
 }
 
+void moveToGoal(double xGoal, double yGoal, double yawGoal)
+{
+    //define a client for to send goal requests to the move_base server through a SimpleActionClient
+	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac_mb2("move_base", true);
+
+	//wait for the action server to come up
+	while(!ac_mb2.waitForServer(ros::Duration(5.0)))
+	{
+		ROS_INFO("Waiting for the move_base 2 action server to come up");
+	}
+
+	move_base_msgs::MoveBaseGoal goal;
+
+	//set up the frame parameters
+	goal.target_pose.header.frame_id = "map";
+	goal.target_pose.header.stamp = ros::Time::now();
+
+	//store desired (x,y,theta) values in move_base message
+	goal.target_pose.pose.position.x =  xGoal;
+	goal.target_pose.pose.position.y =  yGoal;
+	goal.target_pose.pose.position.z =  0.0;
+
+	tf::Quaternion qQR;
+    qQR = toQuaternion(0,0,yawGoal);
+    quaternionTFToMsg(qQR, goal.target_pose.pose.orientation); // stores qQR in goal orientation
+
+	ROS_INFO("Sending goal location ...");
+	ac_mb2.sendGoal(goal);
+    ac_mb2.waitForResult(ros::Duration(75.0));
+
+        if(ac_mb2.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+        {
+            ROS_INFO("You have reached the dock start location");
+
+        }
+        else
+        {
+            ROS_INFO("The robot failed to reach the the dock start location");
+        }
+
+}
+
+void visualPositioning(double error)
+{
+    geometry_msgs::Twist msg_vel;
+
+    msg_vel.linear.x = vel_x;
+    msg_vel.angular.z = k_theta*error;
+
+    pub_vel.publish(msg_vel);
+
+}
+
+static tf::Quaternion toQuaternion(double pitch, double roll, double yaw)
+{
+    //Quaterniond q;
+	double t0 = std::cos(yaw * 0.5);
+	double t1 = std::sin(yaw * 0.5);
+	double t2 = std::cos(roll * 0.5);
+	double t3 = std::sin(roll * 0.5);
+	double t4 = std::cos(pitch * 0.5);
+	double t5 = std::sin(pitch * 0.5);
+
+//	q.w() = t0 * t2 * t4 + t1 * t3 * t5;
+//	q.x() = t0 * t3 * t4 - t1 * t2 * t5;
+//	q.y() = t0 * t2 * t5 + t1 * t3 * t4;
+//	q.z() = t1 * t2 * t4 - t0 * t3 * t5;
+	tf::Quaternion q(t0 * t3 * t4 - t1 * t2 * t5,t0 * t2 * t5 + t1 * t3 * t4,t1 * t2 * t4 - t0 * t3 * t5,t0 * t2 * t4 + t1 * t3 * t5);
+	return q;
+
+}
+
 void docking_callback(const std_msgs::Bool& msg_startDocking)
 {
     if(!msg_startDocking.data)
@@ -122,3 +233,28 @@ void docking_callback(const std_msgs::Bool& msg_startDocking)
         ROS_INFO_STREAM("Begin auto-docking action.");
     }
 }
+
+void dockError_callback(const std_msgs::Float32& msg_dockError)
+{
+    ROS_INFO_STREAM("Current dock error = "<<msg_dockError.data<<"[pixels]");
+    error_posX = msg_dockError.data;
+}
+
+void dockSize_callback(const std_msgs::Float32& msg_blobSize)
+{
+    ROS_INFO_STREAM("Current dock size in camera window = "<<msg_blobSize.data<<"[pixels^2]");
+    blob_size = msg_blobSize.data;
+}
+
+void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
+{
+    ROS_INFO_STREAM("Current turtlebot position: ("
+                    <<msgAMCL.pose.pose.position.x <<","
+                    <<msgAMCL.pose.pose.position.y <<","
+                    <<msgAMCL.pose.pose.position.z <<")");
+
+
+	x_current = msgAMCL.pose.pose.position.x;
+	y_current = msgAMCL.pose.pose.position.y;
+}
+
