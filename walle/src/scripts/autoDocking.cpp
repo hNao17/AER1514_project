@@ -1,7 +1,8 @@
 //Created 2017-03-17
-//Updated 2017-03-22
+//Updated 2017-03-24
 //Node that allows Turtlebot to perform auto-docking with kobuki docking station
-////////////////////////////////////////////////////////////////////////////////
+//If docking is unsuccessful, Turtlebot uses visual servoing to drive to docking station
+/////////////////////////////////////////////////////////////////////////////////////////
 #include <ros/ros.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -20,6 +21,7 @@ bool docking_complete = false;
 ros::Subscriber sub_dockONStatus;
 ros::Subscriber sub_x_position_err;
 ros::Subscriber sub_size;
+ros::Subscriber sub_blobDetect_status;
 ros::Publisher pub_dockingStatus;
 ros::Publisher pub_vel;
 
@@ -45,18 +47,18 @@ void docking_callback(const std_msgs::Bool& msg_startDocking);
 void dockError_callback(const std_msgs::Float32& msg_dockError);
 void dockSize_callback(const std_msgs::Float32& msg_blobSize);
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL);
-//callback function for blobDetect_ON from supervisor
+void blobDetect_callback(const std_msgs::Bool& msg_startVS);
 
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "autoDocking_node");
 	ros::NodeHandle nh2;
 
-	//subscriber to dockStart topic
+	//subscribe to dockStart, dockDetect/x_position_err, dockDetect/size, dockDetect/detection_flag topics
 	sub_dockONStatus = nh2.subscribe("dockON_Status",1000,docking_callback);
 	sub_x_position_err = nh2.subscribe("dockDetect/x_position_err",1000,dockError_callback);
 	sub_size = nh2.subscribe("dockDetect/size",1000,dockSize_callback);
-    //subscriber to blobDetect_ON from supervisor
+    sub_blobDetect_status = nh2.subscribe("dockDetect/detection_flag", 1000,blobDetect_callback);
 
 	//publisher to dockStatus, geometry/Twist topics
 	pub_dockingStatus = nh2.advertise<std_msgs::Bool>("/dockingStatus",1000);
@@ -91,10 +93,12 @@ int main(int argc, char** argv)
         {
 
             //return to dock_start position
-            //while(!blobDetect)
-            //{
+            //docking station should be located by blobDetect
+            while(!blobDetect)
+            {
                 moveToGoal(dock_startX, dock_startY, dock_startTheta);
-            //}
+                ros::spinOnce();
+            }
 
             //Turtlebot is now at random/home position
             //Move Turtlebot along a straight line b/t the docking station and random point
@@ -258,3 +262,18 @@ void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 	y_current = msgAMCL.pose.pose.position.y;
 }
 
+void blobDetect_callback(const std_msgs::Bool& msg_startVS)
+{
+    if(!msg_startVS.data)
+    {
+        blobDetect = false;
+        ROS_INFO_STREAM("Blob detect hasn't found docking station");
+    }
+
+    else
+    {
+        blobDetect = true;
+        ROS_INFO_STREAM("Docking station found. Begin visual servoing");
+    }
+
+}

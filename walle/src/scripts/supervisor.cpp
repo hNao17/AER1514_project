@@ -1,6 +1,7 @@
 //Created 2017-03-17
+//Updated 2017-03-24
 //Node that monitors 1) QR codes and 2) Turtlebot states
-//Can initiate state change request to navigation and auto-docking nodes
+//Can initiate state change request to navigation, auto-docking, dockDetect nodes
 //Prints / speaks the list of qr words
 ////////////////////////////////////////////////////////////////////////////////
 #include <ros/ros.h>
@@ -24,6 +25,7 @@ ros::Subscriber sub_atHomeStatus;
 ros::Subscriber sub_dockingStatus;
 ros::Publisher pub_exploreStatus;
 ros::Publisher pub_dockONStatus;
+ros::Publisher pub_dockSucceedStatus;
 
 /** Function Declarations **/
 void barcode_callback(const std_msgs::String& zbarWord);
@@ -38,20 +40,23 @@ int main(int argc, char** argv)
     ros::NodeHandle nh3;
 
     ROS_INFO_STREAM("Starting Supervisor node");
+
     //subscribe to barcode, atHomeStatus, dockingStatus
     sub_barcode = nh3.subscribe("barcode",1000,barcode_callback);
     sub_atHomeStatus = nh3.subscribe("atHomeStatus",1000,atHome_callback);
     sub_dockingStatus = nh3.subscribe("dockingStatus",1000,dockingStatus_callback);
 
-    //publish to exploreStatus, dockON_Status topics
+    //publish to exploreStatus, dockON_Status, dockSucceed_Status topics
     pub_exploreStatus = nh3.advertise<std_msgs::Bool>("/exploreStatus",1000);
     pub_dockONStatus = nh3.advertise<std_msgs::Bool>("/dockON_Status",1000);
+    pub_dockSucceedStatus = nh3.advertise<std_msgs::Bool>("/dockSucceed_Status",1000);
 
     double start_time = ros::Time::now().toSec();
     double current_time;
 
     std_msgs::Bool msg_exploreON;
     std_msgs::Bool msg_dockON;
+    std_msgs::Bool msg_dockSucceed;
 
     //exploreState is ON
     //monitor incoming QR codes
@@ -97,6 +102,8 @@ int main(int argc, char** argv)
     while(!printList)
     {
         ros::spinOnce();
+        msg_dockSucceed.data = printList;
+        pub_dockSucceedStatus.publish(msg_dockSucceed);
 
     }
     //robot is docked; print qr list

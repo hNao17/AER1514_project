@@ -1,4 +1,5 @@
 //Created 2017-03-22
+//Updated 2017-03-24
 //Node that publishes image size & position information about the docking station
 //Autodocking node can use published information to drive towards the dock using visual-servoing
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,8 +17,13 @@
 using namespace std;
 using namespace cv;
 
+/** Global Variables **/
 static const string OPENCV_WINDOW = "Image window";
+bool autoDock_active = false;
+bool dockSucceed = true;
 
+ros::Subscriber sub_AD_active;
+ros::Subscriber sub_dockSucceed_status;
 
 class ImageConverter
 {
@@ -161,11 +167,71 @@ public:
   }
 };
 
+/** Function Declarations **/
+void docking_callback(const std_msgs::Bool& msg_startDocking);
+void dockSucceed_status_callback(const std_msgs::Bool& msg_startDetect);
+
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "dockDetect");
-  ImageConverter ic;
-  ros::spin();
-  return 0;
+    ros::init(argc, argv, "dockDetect");
+    ros::NodeHandle nh4;
+
+    //subscribe to dockON_status, dockSucceed_Status topics
+    sub_AD_active = nh4.subscribe("dockON_Status",1000,docking_callback);
+    sub_dockSucceed_status = nh4.subscribe("dockSucceed_Status", 1000, dockSucceed_status_callback);
+
+    //node remains idle while the navigation node is active
+  	ros::Rate rate(10);
+	while(!autoDock_active)
+    {
+        ROS_INFO_STREAM("Waiting for Autodocking node to start");
+        ros::spinOnce();
+    }
+
+    //autodocking node is now active
+    ImageConverter ic;
+
+    //if Turtlebot has not docked, start looking for dockin station
+    while(!dockSucceed)
+    {
+        ROS_INFO_STREAM("Looking for docking station");
+        ros::spinOnce();
+    }
+
+    //robot is now docked at station; leave node in idle state
+    ROS_INFO_STREAM("Autodocking node is finished. Place dockDetect node in stand-by mode");
+
+    return 0;
+}
+
+void docking_callback(const std_msgs::Bool& msg_startDocking)
+{
+    if(!msg_startDocking.data)
+    {
+        autoDock_active = false;
+        ROS_INFO_STREAM("Auto-docking node is not active. Robot is not at home position.");
+    }
+
+    else
+    {
+        autoDock_active = true;
+        ROS_INFO_STREAM("Auto-docking is active.");
+    }
+}
+
+void dockSucceed_status_callback(const std_msgs::Bool& msg_startDetect)
+{
+    if(!msg_startDetect.data)
+    {
+        dockSucceed = false;
+        ROS_INFO_STREAM("Auto-docking was not successful. Turn on visual servoing");
+    }
+
+    else
+    {
+        dockSucceed = true;
+        ROS_INFO_STREAM("Auto-docking was sucessful.  Turn off visual servoing");
+    }
+
 }
 
