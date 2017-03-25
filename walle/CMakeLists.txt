@@ -118,6 +118,10 @@ target_link_libraries(navigation ${catkin_LIBRARIES})
 add_executable(autoDocking src/scripts/autoDocking.cpp)
 target_link_libraries(autoDocking ${catkin_LIBRARIES})
 
+#autoDockingStandalone.cpp
+add_executable(autoDockingStandalone src/scripts/autoDockingStandalone.cpp)
+target_link_libraries(autoDockingStandalone ${catkin_LIBRARIES})
+
 #supervisor.cpp
 add_executable(supervisor src/scripts/supervisor.cpp)
 target_link_libraries(supervisor ${catkin_LIBRARIES})

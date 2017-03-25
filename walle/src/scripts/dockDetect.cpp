@@ -19,11 +19,11 @@ using namespace cv;
 
 /** Global Variables **/
 static const string OPENCV_WINDOW = "Image window";
-bool autoDock_active = false;
-bool dockSucceed = true;
+//bool autoDock_active = false;
+//bool dockSucceed = true;
 
-ros::Subscriber sub_AD_active;
-ros::Subscriber sub_dockSucceed_status;
+//ros::Subscriber sub_AD_active;
+//ros::Subscriber sub_dockSucceed_status;
 
 class ImageConverter
 {
@@ -38,8 +38,10 @@ public:
     : it_(nh_)
   {
     // Subscrive to input video feed and publish output video feed
-    image_sub_ = it_.subscribe("/usb_cam/image_raw", 1,
+    image_sub_ = it_.subscribe("/astra/image_raw", 1,
       &ImageConverter::imageCb, this);
+//    image_sub_ = it_.subscribe("/usb_cam/image_raw", 1,
+//          &ImageConverter::imageCb, this);
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
     pos_err_pub_ = nh_.advertise<std_msgs::Float32>("/dockDetect/x_position_err",1000);
     size_pub_ = nh_.advertise<std_msgs::Float32>("/dockDetect/size",1000);
@@ -174,36 +176,40 @@ void dockSucceed_status_callback(const std_msgs::Bool& msg_startDetect);
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "dockDetect");
-    ros::NodeHandle nh4;
+    //ros::NodeHandle nh4;
 
     //subscribe to dockON_status, dockSucceed_Status topics
-    sub_AD_active = nh4.subscribe("dockON_Status",1000,docking_callback);
-    sub_dockSucceed_status = nh4.subscribe("dockSucceed_Status", 1000, dockSucceed_status_callback);
+    //sub_AD_active = nh4.subscribe("dockON_Status",1000,docking_callback);
+   // sub_dockSucceed_status = nh4.subscribe("dockSucceed_Status", 1000, dockSucceed_status_callback);
 
     //node remains idle while the navigation node is active
-  	ros::Rate rate(10);
-	while(!autoDock_active)
+  	//ros::Rate rate(10);
+	/*
+    while(!autoDock_active)
     {
         ROS_INFO_STREAM("Waiting for Autodocking node to start");
         ros::spinOnce();
     }
-
+*/
     //autodocking node is now active
     ImageConverter ic;
-
-    //if Turtlebot has not docked, start looking for dockin station
-    while(!dockSucceed)
-    {
-        ROS_INFO_STREAM("Looking for docking station");
-        ros::spinOnce();
-    }
-
-    //robot is now docked at station; leave node in idle state
-    ROS_INFO_STREAM("Autodocking node is finished. Place dockDetect node in stand-by mode");
-
-    return 0;
+    ros::spin();
+    
+//
+//    //if Turtlebot has not docked, start looking for dockin station
+//    while(!dockSucceed)
+//    {
+//        ROS_INFO_STREAM("Looking for docking station");
+//        ros::spinOnce();
+//    }
+//
+//    //robot is now docked at station; leave node in idle state
+//    ROS_INFO_STREAM("Autodocking node is finished. Place dockDetect node in stand-by mode");
+//
+//    return 0;
 }
 
+/*
 void docking_callback(const std_msgs::Bool& msg_startDocking)
 {
     if(!msg_startDocking.data)
@@ -234,4 +240,5 @@ void dockSucceed_status_callback(const std_msgs::Bool& msg_startDetect)
     }
 
 }
+*/
 

@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 
 void readWaypoints()
 {
-    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints8.txt.csv");
+    std::ifstream infile("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints8.txt.csv");
 
     double xPoint;
     double yPoint;

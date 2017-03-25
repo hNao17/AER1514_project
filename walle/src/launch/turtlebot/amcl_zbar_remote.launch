@@ -41,7 +41,7 @@
   </include>
 
   <!-- Map server -->
-  <arg name="map_file" default="/home/turtlebot/turtlebot_ws/utias8.yaml"/>
+  <arg name="map_file" default="$(find walle)/src/maps/utias8.yaml"/>
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
   <!-- AMCL -->
@@ -70,6 +70,6 @@
   <param name="/move_base/DWAPlannerROS/sim_time" value="1.5" />
   <param name="/move_base/DWAPlannerROS/vx_samples" value="20" />
   <param name="/move_base/DWAPlannerROS/vtheta_samples" value="40" />
-  <param name="/move_base/DWAPlannerROS/max_vel_x" value="0.2" />
+  <param name="/move_base/DWAPlannerROS/max_vel_x" value="0.1" />
 
 </launch>

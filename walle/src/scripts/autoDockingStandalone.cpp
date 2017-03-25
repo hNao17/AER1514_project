@@ -15,7 +15,7 @@
 #include <std_msgs/Float32.h>
 
 /** Global Variables **/
-bool dockON = false;
+bool dockON = true;
 bool docking_complete = false;
 
 ros::Subscriber sub_dockONStatus;
@@ -25,8 +25,8 @@ ros::Subscriber sub_blobDetect_status;
 ros::Publisher pub_dockingStatus;
 ros::Publisher pub_vel;
 
-const double vel_x = 0.2;
-const double k_theta = 1.0;
+const double vel_x = 0.1;
+const double k_theta = 0.001;
 const double size_threshold = 45.0;
 const double timeout_for_dockDetect = 3.0;
 float blob_size;
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh2;
 
 	//subscribe to dockStart, dockDetect/x_position_err, dockDetect/size, dockDetect/detection_flag topics
-	sub_dockONStatus = nh2.subscribe("dockON_Status",1000,docking_callback);
+	//sub_dockONStatus = nh2.subscribe("dockON_Status",1000,docking_callback);
 	sub_x_position_err = nh2.subscribe("dockDetect/x_position_err",1000,dockError_callback);
 	sub_size = nh2.subscribe("dockDetect/size",1000,dockSize_callback);
     sub_blobDetect_status = nh2.subscribe("dockDetect/detection_flag", 1000,blobDetect_callback);
@@ -72,10 +72,10 @@ int main(int argc, char** argv)
         ros::spinOnce();
     }
 
-    //robot is now at home position
-    docking_complete=moveToDock();
-    std_msgs::Bool msg_atDock;
-    msg_atDock.data = docking_complete;
+//    //robot is now at home position
+//    docking_complete=moveToDock();
+     std_msgs::Bool msg_atDock;
+     msg_atDock.data = docking_complete;
 
     //robot successfully docked on first attempt
     if(docking_complete)
@@ -92,11 +92,11 @@ int main(int argc, char** argv)
     	{
 
 			// Random point reposition
-			bool reposition_success = moveToGoal(dock_startX, dock_startY, dock_startTheta);
-			ros::spinOnce();
+			//bool reposition_success = moveToGoal(dock_startX, dock_startY, dock_startTheta);
+			//ros::spinOnce();
 
-			if (reposition_success)
-			{
+			//if (reposition_success)
+			//{
 				ROS_INFO_STREAM("Reposition Succeeded. Initiating Visual Servoing");
 
 				//Initiate Visual Servoing
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 					ros::spinOnce();
 				}
 
-			}
+			//}
 
 			pub_dockingStatus.publish(msg_atDock);
 			ros::spinOnce();
@@ -164,7 +164,7 @@ bool moveToDock()
 	kobuki_msgs::AutoDockingGoal goal_dock;
 
 	ac_dock.sendGoal(goal_dock);
-	ac_dock.waitForResult(ros::Duration(60.0));
+	ac_dock.waitForResult(ros::Duration(30.0));
 
 	if(ac_dock.getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
     {
@@ -228,7 +228,7 @@ void visualPositioning(double error)
     geometry_msgs::Twist msg_vel;
 
     msg_vel.linear.x = vel_x;
-    msg_vel.angular.z = k_theta*error;
+    msg_vel.angular.z = -k_theta*error;
 
     pub_vel.publish(msg_vel);
     ROS_INFO_STREAM("Visual Servo Commands:: Velocity ="<<msg_vel.linear.x<<" Steering ="<<msg_vel.angular.z);
@@ -256,17 +256,17 @@ static tf::Quaternion toQuaternion(double pitch, double roll, double yaw)
 
 void docking_callback(const std_msgs::Bool& msg_startDocking)
 {
-    if(!msg_startDocking.data)
-    {
-        dockON = false;
-        ROS_INFO_STREAM("Hold auto-docking. Robot is not at home position.");
-    }
-
-    else
-    {
-        dockON = true;
-        ROS_INFO_STREAM("Begin auto-docking action.");
-    }
+//    if(!msg_startDocking.data)
+//    {
+//        dockON = false;
+//        ROS_INFO_STREAM("Hold auto-docking. Robot is not at home position.");
+//    }
+//
+//    else
+//    {
+//        dockON = true;
+//        ROS_INFO_STREAM("Begin auto-docking action.");
+//    }
 }
 
 void dockError_callback(const std_msgs::Float32& msg_dockError)
