@@ -114,15 +114,15 @@ public:
     SimpleBlobDetector detector(params);
 
     //Make 2 copies of the image
-    Mat image1 = cv_ptr->image;
+    //Mat image1 = cv_ptr->image;
     Mat image2;
     Mat croppedImage;
 
     // store width of image
-    float image_width = image1.cols;
+    float image_width = cv_ptr->image.cols;
 
     //Apply a Gaussian blur
-    GaussianBlur(image1, image2, ksize, 1, 0);
+    GaussianBlur(cv_ptr->image, image2, ksize, 1, 0);
     //Apply contrast filter
     image2.convertTo(image2, -1, 2.0, 50);
     //Crop away top 1/3 of image

@@ -101,12 +101,12 @@ public:
     //if (cv_ptr->image.rows > 60 && cv_ptr->image.cols > 60)
       //cv::circle(cv_ptr->image, cv::Point(50, 50), 10, CV_RGB(255,0,0));
     //Make 2 copies of the image
-    Mat image1 = cv_ptr->image;
+    //Mat image1 = cv_ptr->image;
     Mat image2;
     Mat croppedImage;
     
     //Apply a Gaussian blur
-    GaussianBlur(image1, image2, ksize, 1, 0);  
+    GaussianBlur(cv_ptr->image, image2, ksize, 1, 0);  
     //Apply contrast filter
     image2.convertTo(image2, -1, 2.0, 50);
     //Crop away top 1/3 of image
