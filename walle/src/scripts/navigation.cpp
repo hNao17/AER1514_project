@@ -63,10 +63,11 @@ int main(int argc, char** argv)
 	pub_velNav = nh1.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
 
 	//Turtlebot moves backwards away from docking station
+	ROS_INFO_STREAM("Backing away from docking station");
 	double timeStart = ros::Time::now().toSec();
 	double timeCurrent;
     geometry_msgs::Twist msg_vel;
-	while(timeCurrent - timeStart < 2.0)
+	while(timeCurrent - timeStart < 3.0)
     {
 
 

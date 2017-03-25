@@ -38,7 +38,9 @@ public:
     : it_(nh_)
   {
     // Subscrive to input video feed and publish output video feed
-    image_sub_ = it_.subscribe("/astra/image_raw", 1,
+   //image_sub_ = it_.subscribe("/astra/image_raw", 1,
+    //  &ImageConverter::imageCb, this);
+        image_sub_ = it_.subscribe("/astra/image", 1,
       &ImageConverter::imageCb, this);
 //    image_sub_ = it_.subscribe("/usb_cam/image_raw", 1,
 //          &ImageConverter::imageCb, this);
@@ -194,7 +196,7 @@ int main(int argc, char** argv)
     //autodocking node is now active
     ImageConverter ic;
     ros::spin();
-    
+
 //
 //    //if Turtlebot has not docked, start looking for dockin station
 //    while(!dockSucceed)

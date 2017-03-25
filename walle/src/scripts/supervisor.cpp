@@ -20,7 +20,8 @@ const int listSize = 50;
 std::string qrList[listSize];
 int listCounter=0;
 
-ros::Subscriber sub_barcode;
+ros::Subscriber sub_barcodeWebcam;
+ros::Subscriber sub_barcodeAstra;
 ros::Subscriber sub_atHomeStatus;
 ros::Subscriber sub_dockingStatus;
 ros::Publisher pub_exploreStatus;
@@ -42,7 +43,8 @@ int main(int argc, char** argv)
     ROS_INFO_STREAM("Starting Supervisor node");
 
     //subscribe to barcode, atHomeStatus, dockingStatus
-    sub_barcode = nh3.subscribe("barcode",1000,barcode_callback);
+    sub_barcodeWebcam = nh3.subscribe("webcam/barcode",1000,barcode_callback);
+    sub_barcodeAstra = nh3.subscribe("astra/barcode",1000,barcode_callback);
     sub_atHomeStatus = nh3.subscribe("atHomeStatus",1000,atHome_callback);
     sub_dockingStatus = nh3.subscribe("dockingStatus",1000,dockingStatus_callback);
 

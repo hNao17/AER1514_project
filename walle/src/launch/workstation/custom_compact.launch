@@ -8,7 +8,7 @@
 
   <node name="autoDocking" pkg="walle" type="autoDocking" output = "screen" launch-prefix= "xterm -e"/>
 
-  <node name="dockDetect" pkg="walle" type="dockDetect" output = "screen" launch-prefix= "xterm -e"/>
+  <!--<node name="dockDetect" pkg="walle" type="dockDetect" output = "screen" launch-prefix= "xterm -e"/>-->
 
 
 </launch>

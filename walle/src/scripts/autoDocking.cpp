@@ -25,16 +25,16 @@ ros::Subscriber sub_blobDetect_status;
 ros::Publisher pub_dockingStatus;
 ros::Publisher pub_vel;
 
-const double vel_x = 0.2;
-const double k_theta = 1.0;
+const double vel_x = 0.1;
+const double k_theta = 0.01;
 const double size_threshold = 45.0;
 const double timeout_for_dockDetect = 3.0;
 float blob_size;
 double error_posX;
 bool blobDetect;
 
-const double dock_startX = 4.5;
-const double dock_startY = 31.0;
+const double dock_startX = 31.0;
+const double dock_startY = 4.5;
 const double dock_startTheta = 0.0;
 double x_current;
 double y_current;
@@ -164,7 +164,7 @@ bool moveToDock()
 	kobuki_msgs::AutoDockingGoal goal_dock;
 
 	ac_dock.sendGoal(goal_dock);
-	ac_dock.waitForResult(ros::Duration(60.0));
+	ac_dock.waitForResult(ros::Duration(30.0));
 
 	if(ac_dock.getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
     {
@@ -228,7 +228,7 @@ void visualPositioning(double error)
     geometry_msgs::Twist msg_vel;
 
     msg_vel.linear.x = vel_x;
-    msg_vel.angular.z = k_theta*error;
+    msg_vel.angular.z = -k_theta*error;
 
     pub_vel.publish(msg_vel);
     ROS_INFO_STREAM("Visual Servo Commands:: Velocity ="<<msg_vel.linear.x<<" Steering ="<<msg_vel.angular.z);
