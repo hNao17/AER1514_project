@@ -1,4 +1,5 @@
 //Created 2017-03-17
+//Updated 2017-03-24
 //Node that allows Turtlebot to explore UTIAS
 //Uses an a priori set of waypoints that are read in from a text file
 ///////////////////////////////////////////////////////////////////////////
@@ -8,6 +9,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Twist.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -30,9 +32,12 @@ const double theta_home=0.0;
 ros::Subscriber sub_pose;
 ros::Subscriber sub_exploreStatus;
 ros::Publisher pub_atHomeStatus;
+ros::Publisher pub_velNav;
 
 double x_current;
 double y_current;
+
+double vel_x=-0.2;
 
 /** function declarations **/
 void readWaypoints();
@@ -55,11 +60,33 @@ int main(int argc, char** argv)
 
 	//publish atHome_status to supervisor node
 	pub_atHomeStatus = nh1.advertise<std_msgs::Bool>("/atHomeStatus",1000);
+	pub_velNav = nh1.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
 
+	//Turtlebot moves backwards away from docking station
+	double timeStart = ros::Time::now().toSec();
+	double timeCurrent;
+    geometry_msgs::Twist msg_vel;
+	while(timeCurrent - timeStart < 2.0)
+    {
+
+
+        msg_vel.linear.x = vel_x;
+        msg_vel.angular.z = 0;
+
+        pub_velNav.publish(msg_vel);
+
+        timeCurrent = ros::Time::now().toSec();
+
+    }
+
+    vel_x =0;
+    msg_vel.linear.x = vel_x;
+    pub_velNav.publish(msg_vel);
 	ros::spinOnce();
 
 	int i=0;
 
+	//main exploration loop
     while(i<num_waypoints && exploreON==true)
 	{
 		//position command
@@ -97,7 +124,7 @@ int main(int argc, char** argv)
 
 void readWaypoints()
 {
-    std::ifstream infile("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints8.txt.csv");
+    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints8.txt.csv");
 
     double xPoint;
     double yPoint;
