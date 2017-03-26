@@ -164,7 +164,7 @@ bool moveToDock()
 	kobuki_msgs::AutoDockingGoal goal_dock;
 
 	ac_dock.sendGoal(goal_dock);
-	ac_dock.waitForResult(ros::Duration(45.0));
+	ac_dock.waitForResult(ros::Duration(30.0));
 
 	if(ac_dock.getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
     {

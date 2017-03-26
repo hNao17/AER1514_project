@@ -14,7 +14,7 @@ bool time_exceeded = false;
 bool startDock = false;
 bool printList = false;
 
-double allowable_time = 600.0;
+double allowable_time = 60.0;
 
 const int listSize = 50;
 std::string qrList[listSize];
