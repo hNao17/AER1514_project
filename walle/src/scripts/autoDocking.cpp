@@ -33,9 +33,12 @@ float blob_size;
 double error_posX;
 bool blobDetect;
 
-const double dock_startX = 31.0;
-const double dock_startY = 4.0;
-const double dock_startTheta = 0.0;
+const double xHome = 31.0;
+const double yHome = 4.0;
+const double thetaHome = 0.0;
+const int dock_radius = 1;
+const int dock_thetaRange = 90;
+
 double x_current;
 double y_current;
 
@@ -94,6 +97,9 @@ int main(int argc, char** argv)
     	{
 
 			// Random point reposition
+			double dock_startX = xHome + dock_startX + double(rand() % dock_radius);;
+            double dock_startY = yHome + double((rand()% (2*dock_radius)-dock_radius));
+            double dock_startTheta = thetaHome + double((rand()%(2*dock_thetaRange)-dock_thetaRange));
 			bool reposition_success = moveToGoal(dock_startX, dock_startY, dock_startTheta);
 			ros::spinOnce();
 
