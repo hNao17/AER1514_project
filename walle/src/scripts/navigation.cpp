@@ -17,7 +17,7 @@
 #include <std_msgs/Bool.h>
 
 /**Global Variables**/
-const int num_waypoints=50;
+const int num_waypoints=17;
 const int dim_waypoint=3;
 double path [num_waypoints][dim_waypoint];
 
@@ -25,7 +25,7 @@ bool exploreON = true;
 bool returnHome = false;
 bool atHome= false;
 
-const double x_home=31.5;
+const double x_home=31.0;
 const double y_home=4.0;
 const double theta_home=0.0;
 
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
 
 void readWaypoints()
 {
-    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints8.txt.csv");
+    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints9.txt.csv");
 
     double xPoint;
     double yPoint;
@@ -187,7 +187,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	ac.sendGoal(goal);
 
 	//only cancel goal while the Turtlebot is in an explore state
-	if(exploreON==false && returnHome==false)
+	if(exploreON==false && returnHome == false)
 	{
 	    ac.cancelGoal();
 	    ROS_WARN_STREAM("Canceling goal b/c allowable search time has been exceeded.");
@@ -210,7 +210,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
         }
         else
         {
-            ROS_INFO("The robot failed to reach the destination");
+            ROS_INFO("Turtlebot failed to reach the destination");
         }
     }
 
@@ -237,10 +237,10 @@ static tf::Quaternion toQuaternion(double pitch, double roll, double yaw)
 
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 {
-    ROS_INFO_STREAM("Current turtlebot position: ("
+    /*ROS_INFO_STREAM("Current turtlebot position: ("
                     <<msgAMCL.pose.pose.position.x <<","
                     <<msgAMCL.pose.pose.position.y <<","
-                    <<msgAMCL.pose.pose.position.z <<")");
+                    <<msgAMCL.pose.pose.position.z <<")");*/
 
 
 	x_current = msgAMCL.pose.pose.position.x;
@@ -253,13 +253,13 @@ void exploreStatus_callback(const std_msgs::Bool& msg_exploreStatus)
     if(!msg_exploreStatus.data)
     {
         exploreON = true;
-        ROS_INFO_STREAM("Explore state is still active. Continue searching for QR codes");
+        //ROS_INFO_STREAM("Explore state is still active. Continue searching for QR codes");
     }
 
     else
     {
         exploreON = false;
-        ROS_INFO_STREAM("Allowable explore time is over. Return to docking station");
+        //ROS_INFO_STREAM("Allowable explore time is over. Return to docking station");
     }
 
 

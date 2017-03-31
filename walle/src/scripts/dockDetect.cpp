@@ -38,12 +38,11 @@ public:
     : it_(nh_)
   {
     // Subscrive to input video feed and publish output video feed
-   //image_sub_ = it_.subscribe("/astra/image_raw", 1,
-    //  &ImageConverter::imageCb, this);
-        image_sub_ = it_.subscribe("/astra/image", 1,
-      &ImageConverter::imageCb, this);
-//    image_sub_ = it_.subscribe("/usb_cam/image_raw", 1,
-//          &ImageConverter::imageCb, this);
+   /*image_sub_ = it_.subscribe("/astra/image_raw", 1,
+    &ImageConverter::imageCb, this);*/
+        image_sub_ = it_.subscribe("/astra/image", 1, &ImageConverter::imageCb, this);
+ //image_sub_ = it_.subscribe("/usb_cam/image_raw", 1,
+        //&ImageConverter::imageCb, this);
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
     pos_err_pub_ = nh_.advertise<std_msgs::Float32>("/dockDetect/x_position_err",1000);
     size_pub_ = nh_.advertise<std_msgs::Float32>("/dockDetect/size",1000);

@@ -26,7 +26,7 @@ ros::Publisher pub_dockingStatus;
 ros::Publisher pub_vel;
 
 const double vel_x = 0.1;
-const double k_theta = 0.01;
+const double k_theta = 0.001;
 const double size_threshold = 45.0;
 const double timeout_for_dockDetect = 3.0;
 float blob_size;
@@ -34,7 +34,7 @@ double error_posX;
 bool blobDetect;
 
 const double dock_startX = 31.0;
-const double dock_startY = 4.5;
+const double dock_startY = 4.0;
 const double dock_startTheta = 0.0;
 double x_current;
 double y_current;
@@ -65,11 +65,13 @@ int main(int argc, char** argv)
 	pub_dockingStatus = nh2.advertise<std_msgs::Bool>("/dockingStatus",1000);
 	pub_vel = nh2.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
 
-	ros::Rate rate(10);
+	ros::Rate r1(1); //loop rate = 1 [HZ]
+    ROS_INFO_STREAM("Waiting for Docking approval");
 	while(!dockON)
     {
-        ROS_INFO_STREAM("Waiting for Docking approval");
+
         ros::spinOnce();
+        r1.sleep();
     }
 
     //robot is now at home position
@@ -164,7 +166,7 @@ bool moveToDock()
 	kobuki_msgs::AutoDockingGoal goal_dock;
 
 	ac_dock.sendGoal(goal_dock);
-	ac_dock.waitForResult(ros::Duration(45.0));
+	ac_dock.waitForResult(ros::Duration(60.0));
 
 	if(ac_dock.getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
     {
@@ -259,34 +261,34 @@ void docking_callback(const std_msgs::Bool& msg_startDocking)
     if(!msg_startDocking.data)
     {
         dockON = false;
-        ROS_INFO_STREAM("Hold auto-docking. Robot is not at home position.");
+        //ROS_INFO_STREAM("Hold auto-docking. Robot is not at home position.");
     }
 
     else
     {
         dockON = true;
-        ROS_INFO_STREAM("Begin auto-docking action.");
+        //ROS_INFO_STREAM("Begin auto-docking action.");
     }
 }
 
 void dockError_callback(const std_msgs::Float32& msg_dockError)
 {
-    ROS_INFO_STREAM("Current dock error = "<<msg_dockError.data<<"[pixels]");
+    //ROS_INFO_STREAM("Current dock error = "<<msg_dockError.data<<"[pixels]");
     error_posX = msg_dockError.data;
 }
 
 void dockSize_callback(const std_msgs::Float32& msg_blobSize)
 {
-    ROS_INFO_STREAM("Current dock size in camera window = "<<msg_blobSize.data<<"[pixels^2]");
+    //ROS_INFO_STREAM("Current dock size in camera window = "<<msg_blobSize.data<<"[pixels^2]");
     blob_size = msg_blobSize.data;
 }
 
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 {
-    ROS_INFO_STREAM("Current turtlebot position: ("
+    /*ROS_INFO_STREAM("Current turtlebot position: ("
                     <<msgAMCL.pose.pose.position.x <<","
                     <<msgAMCL.pose.pose.position.y <<","
-                    <<msgAMCL.pose.pose.position.z <<")");
+                    <<msgAMCL.pose.pose.position.z <<")");*/
 
 
 	x_current = msgAMCL.pose.pose.position.x;
@@ -298,13 +300,13 @@ void blobDetect_callback(const std_msgs::Bool& msg_startVS)
     if(!msg_startVS.data)
     {
         blobDetect = false;
-        ROS_INFO_STREAM("Blob detect hasn't found docking station");
+        //ROS_INFO_STREAM("Blob detect hasn't found docking station");
     }
 
     else
     {
         blobDetect = true;
-        ROS_INFO_STREAM("Docking station found. Begin visual servoing");
+        //ROS_INFO_STREAM("Docking station found. Begin visual servoing");
     }
 
 }
