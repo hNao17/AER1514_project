@@ -14,7 +14,7 @@ bool time_exceeded = false;
 bool startDock = false;
 bool printList = false;
 
-double allowable_time = 60.0;
+double allowable_time = 600.0;
 
 const int listSize = 50;
 std::string qrList[listSize];
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
     //monitor incoming QR codes
     /*set exploreState to OFF when the allowable explore time has been exceeded and
     at least 1 qr code has been found */
-    ros::Rate rate(10);
+    ros::Rate rs1(10); //loop rate = 10 [Hz]
     ROS_INFO_STREAM("Current Robot State: EXPLORE");
     while(!time_exceeded)
     {
@@ -86,15 +86,21 @@ int main(int argc, char** argv)
 
         ros::spinOnce();
 
+        rs1.sleep();
+
     }
 
 
     ROS_INFO_STREAM("Current Robot State: RETURN_HOME");
     while(!startDock)
     {
+        ROS_INFO_STREAM("Number of Words = "<<listCounter);
+
         ros::spinOnce();
         msg_dockON.data = startDock;
         pub_dockONStatus.publish(msg_dockON);
+
+        rs1.sleep();
 
     }
 
@@ -106,6 +112,8 @@ int main(int argc, char** argv)
         ros::spinOnce();
         msg_dockSucceed.data = printList;
         pub_dockSucceedStatus.publish(msg_dockSucceed);
+
+        rs1.sleep();
 
     }
     //robot is docked; print qr list

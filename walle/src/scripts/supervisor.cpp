@@ -43,8 +43,8 @@ int main(int argc, char** argv)
     ROS_INFO_STREAM("Starting Supervisor node");
 
     //subscribe to barcode, atHomeStatus, dockingStatus
-    sub_barcodeWebcam = nh3.subscribe("webcam/barcode",1000,barcode_callback);
-    sub_barcodeAstra = nh3.subscribe("astra/barcode",1000,barcode_callback);
+    sub_barcodeWebcam = nh3.subscribe("webcam/qrcode",1000,barcode_callback);
+    sub_barcodeAstra = nh3.subscribe("astra/qrcode",1000,barcode_callback);
     sub_atHomeStatus = nh3.subscribe("atHomeStatus",1000,atHome_callback);
     sub_dockingStatus = nh3.subscribe("dockingStatus",1000,dockingStatus_callback);
 
