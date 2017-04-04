@@ -33,10 +33,10 @@ float blob_size;
 double error_posX;
 bool blobDetect;
 
-const double xHome = 31.0;
-const double yHome = 4.0;
-const double thetaHome = 0.0;
-const int dock_radius = 1;
+const double xHome = 31.5;
+const double yHome = 6.5;
+const double thetaHome = -90.0;
+const int dock_radius = 5;
 const int dock_thetaRange = 90;
 
 double x_current;
@@ -78,7 +78,8 @@ int main(int argc, char** argv)
     }
 
     //robot is now at home position
-    docking_complete=moveToDock();
+    //docking_complete=moveToDock();
+    docking_complete=false;
     std_msgs::Bool msg_atDock;
     msg_atDock.data = docking_complete;
 
@@ -97,9 +98,11 @@ int main(int argc, char** argv)
     	{
 
 			// Random point reposition
-			double dock_startX = xHome + dock_startX + double(rand() % dock_radius);;
-            double dock_startY = yHome + double((rand()% (2*dock_radius)-dock_radius));
-            double dock_startTheta = thetaHome + double((rand()%(2*dock_thetaRange)-dock_thetaRange));
+			double dock_startX = xHome + 0.1*double(2*(rand() % dock_radius)-dock_radius);
+            double dock_startY = yHome + 0.1*double(rand()% dock_radius);
+            double dock_startTheta = thetaHome;  //double((rand()%(2*dock_thetaRange)-dock_thetaRange));
+            ROS_INFO_STREAM("Dock_startX ="<<dock_startX);
+            ROS_INFO_STREAM("Dock_startY ="<<dock_startY);
 			bool reposition_success = moveToGoal(dock_startX, dock_startY, dock_startTheta);
 			ros::spinOnce();
 

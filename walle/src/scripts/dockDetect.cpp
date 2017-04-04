@@ -89,7 +89,7 @@ public:
 
 		// Filter by Area.
 		params.filterByArea = true;
-		params.minArea = 500;
+		params.minArea = 2000;
 		params.maxArea = 10000;
 
 		// Filter by Circularity

@@ -17,7 +17,7 @@
 #include <std_msgs/Bool.h>
 
 /**Global Variables**/
-const int num_waypoints=17;
+const int num_waypoints=21;
 const int dim_waypoint=3;
 double path [num_waypoints][dim_waypoint];
 
@@ -25,9 +25,9 @@ bool exploreON = true;
 bool returnHome = false;
 bool atHome= false;
 
-const double x_home=31.0;
-const double y_home=4.0;
-const double theta_home=0.0;
+const double x_home=31.5;
+const double y_home=6.5;
+const double theta_home=-90.0;
 
 ros::Subscriber sub_pose;
 ros::Subscriber sub_exploreStatus;
