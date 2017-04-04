@@ -24,8 +24,10 @@ ros::Subscriber sub_size;
 ros::Subscriber sub_blobDetect_status;
 ros::Publisher pub_dockingStatus;
 ros::Publisher pub_vel;
+ros::Publisher pub_velRev;
 
 const double vel_x = 0.1;
+double vel_rev;
 const double k_theta = 0.001;
 const double size_threshold = 45.0;
 const double timeout_for_dockDetect = 3.0;
@@ -33,9 +35,9 @@ float blob_size;
 double error_posX;
 bool blobDetect;
 
-const double xHome = 31.5;
-const double yHome = 6.5;
-const double thetaHome = -90.0;
+const double xHome = 31.0;
+const double yHome = 4.7;
+const double thetaHome = 0.0;
 const int dock_radius = 5;
 const int dock_thetaRange = 90;
 
@@ -45,6 +47,7 @@ double y_current;
 /** Function Declarations **/
 bool moveToDock();
 bool moveToGoal(double xGoal, double yGoal, double yawGoal);
+void reverseFromDock();
 void visualPositioning(double posX_error);
 static tf::Quaternion toQuaternion(double pitch, double roll, double yaw);
 void docking_callback(const std_msgs::Bool& msg_startDocking);
@@ -52,6 +55,7 @@ void dockError_callback(const std_msgs::Float32& msg_dockError);
 void dockSize_callback(const std_msgs::Float32& msg_blobSize);
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL);
 void blobDetect_callback(const std_msgs::Bool& msg_startVS);
+
 
 int main(int argc, char** argv)
 {
@@ -67,6 +71,7 @@ int main(int argc, char** argv)
 	//publisher to dockStatus, geometry/Twist topics
 	pub_dockingStatus = nh2.advertise<std_msgs::Bool>("/dockingStatus",1000);
 	pub_vel = nh2.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
+	pub_velRev = nh2.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
 
 	ros::Rate r1(1); //loop rate = 1 [HZ]
     ROS_INFO_STREAM("Waiting for Docking approval");
@@ -78,8 +83,8 @@ int main(int argc, char** argv)
     }
 
     //robot is now at home position
-    //docking_complete=moveToDock();
-    docking_complete=false;
+    docking_complete=moveToDock();
+    //docking_complete=false;
     std_msgs::Bool msg_atDock;
     msg_atDock.data = docking_complete;
 
@@ -186,6 +191,7 @@ bool moveToDock()
     {
         ROS_INFO_STREAM("Auto-docking failed");
         ac_dock.cancelGoal();
+        reverseFromDock();
         return false;
     }
 }
@@ -232,6 +238,32 @@ bool moveToGoal(double xGoal, double yGoal, double yawGoal)
             return false;
         }
 
+}
+
+void reverseFromDock()
+{
+    //Turtlebot moves backwards away from docking station
+	ROS_INFO_STREAM("Backing away from docking station");
+	double tStart = ros::Time::now().toSec();
+	double tCurrent;
+    geometry_msgs::Twist msg_velRev;
+	while(tCurrent - tStart < 5.0)
+    {
+
+
+        msg_velRev.linear.x = vel_rev;
+        msg_velRev.angular.z = 0;
+
+        pub_velRev.publish(msg_velRev);
+
+        tCurrent = ros::Time::now().toSec();
+
+    }
+
+    vel_rev=0;
+    msg_velRev.linear.x = vel_rev;
+    pub_velRev.publish(msg_velRev);
+	ros::spinOnce();
 }
 
 void visualPositioning(double error)

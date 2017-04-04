@@ -1,7 +1,9 @@
 //Created 2017-03-17
 //Updated 2017-03-24
+//Updated 2017-04-04
 //Node that allows Turtlebot to explore UTIAS
 //Uses an a priori set of waypoints that are read in from a text file
+//User can specificy the starting waypoint
 ///////////////////////////////////////////////////////////////////////////
 
 #include <ros/ros.h>
@@ -25,17 +27,19 @@ bool exploreON = true;
 bool returnHome = false;
 bool atHome= false;
 
-const double x_home=31.5;
-const double y_home=6.5;
-const double theta_home=-90.0;
+double x_home;
+double y_home;
+double theta_home;
 
 ros::Subscriber sub_pose;
 ros::Subscriber sub_exploreStatus;
 ros::Publisher pub_atHomeStatus;
 ros::Publisher pub_velNav;
 
+
 double x_current;
 double y_current;
+double theta_current;
 
 double vel_x=-0.2;
 
@@ -62,12 +66,18 @@ int main(int argc, char** argv)
 	pub_atHomeStatus = nh1.advertise<std_msgs::Bool>("/atHomeStatus",1000);
 	pub_velNav = nh1.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
 
+    //user enters starting waypoint number
+    int i;
+    std::cout<<"Enter starting waypoint number b/t 1-21 ";
+    std::cin>>i;
+    i=i-1;
+
 	//Turtlebot moves backwards away from docking station
 	ROS_INFO_STREAM("Backing away from docking station");
 	double timeStart = ros::Time::now().toSec();
 	double timeCurrent;
     geometry_msgs::Twist msg_vel;
-	while(timeCurrent - timeStart < 3.0)
+	while(timeCurrent - timeStart < 6.0)
     {
 
 
@@ -85,7 +95,10 @@ int main(int argc, char** argv)
     pub_velNav.publish(msg_vel);
 	ros::spinOnce();
 
-	int i=0;
+	//set home position to current Turtlebot Position
+	x_home = x_current;
+	y_home  = y_current;
+	theta_home = theta_current;
 
 	//main exploration loop
     while(i<num_waypoints && exploreON==true)
@@ -125,7 +138,7 @@ int main(int argc, char** argv)
 
 void readWaypoints()
 {
-    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints9.txt.csv");
+    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints10.txt.csv");
 
     double xPoint;
     double yPoint;
@@ -245,6 +258,17 @@ void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 
 	x_current = msgAMCL.pose.pose.position.x;
 	y_current = msgAMCL.pose.pose.position.y;
+
+    tf::Quaternion q (msgAMCL.pose.pose.orientation.x,
+                      msgAMCL.pose.pose.orientation.y,
+             		 msgAMCL.pose.pose.orientation.z,
+               		 msgAMCL.pose.pose.orientation.w);
+
+	tf::Matrix3x3 m(q);
+	double roll, pitch, yaw;
+	m.getRPY(roll, pitch, yaw);
+
+	theta_current = yaw;
 }
 
 void exploreStatus_callback(const std_msgs::Bool& msg_exploreStatus)

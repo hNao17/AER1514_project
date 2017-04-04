@@ -8,13 +8,15 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 #include <string>
+#include <iostream>
+#include <fstream>
 
 /** Global Variables **/
 bool time_exceeded = false;
 bool startDock = false;
 bool printList = false;
 
-double allowable_time = 600.0;
+double allowable_time = 900.0;
 
 const int listSize = 50;
 std::string qrList[listSize];
@@ -34,6 +36,7 @@ void atHome_callback(const std_msgs::Bool& msg_atHome);
 void dockingStatus_callback(const std_msgs::Bool& msg_atDock);
 bool searchList(std::string word);
 void printWordList();
+void saveWordList();
 
 int main(int argc, char** argv)
 {
@@ -106,6 +109,7 @@ int main(int argc, char** argv)
 
     }
 
+    saveWordList();
     ROS_INFO_STREAM("Turning RETURN_HOME off");
 
     printWordList();
@@ -201,4 +205,32 @@ void printWordList()
         }
     }
 
+}
+
+void saveWordList()
+{
+    ROS_INFO_STREAM("Trying to save qr list");
+
+    if(listCounter >= 1)
+    {
+        //std::ofstream fout("home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/qrList.txt");
+        ROS_INFO_STREAM("List has more than one qr code");
+        std::ofstream fout;
+        fout.open("qrMasterList.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
+
+        if(fout.is_open())
+        {
+            ROS_INFO_STREAM("Fout is open");
+
+            for(int j=0;j<listCounter-1;j++)
+            {
+                fout<<"\n"<<qrList[j];
+            }
+
+            fout.close();
+
+            ROS_INFO_STREAM("QR list sucessfully saved to hard disk");
+        }
+
+    }
 }
