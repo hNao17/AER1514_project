@@ -72,13 +72,13 @@ public:
 
 	// Filter by Area.
 	params.filterByArea = true;
-	params.minArea = 500;
+	params.minArea = 2000;
     params.maxArea = 10000;
 
 	// Filter by Circularity
 	params.filterByCircularity = false;
-	//params.minCircularity = 0.785;
-    params.maxCircularity = 0.999;
+	params.minCircularity = 0.9;
+    //params.maxCircularity = 0.999;
 
 	// Filter by Convexity
 	params.filterByConvexity = false;
@@ -87,7 +87,7 @@ public:
 	// Filter by Inertia
 	params.filterByInertia = true;
     params.minInertiaRatio = 0.15;
-	//params.maxInertiaRatio = 0.5;
+	//params.maxInertiaRatio = 0.45;
 
     Mat im_with_keypoints;
     
