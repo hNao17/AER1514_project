@@ -11,6 +11,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+//#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <iostream>
 #include <fstream>
@@ -35,7 +36,7 @@ ros::Subscriber sub_pose;
 ros::Subscriber sub_exploreStatus;
 ros::Publisher pub_atHomeStatus;
 ros::Publisher pub_velNav;
-
+//ros::Publisher pub_homePos;
 
 double x_current;
 double y_current;
@@ -129,6 +130,8 @@ int main(int argc, char** argv)
     std_msgs::Bool msg_atHome;
     msg_atHome.data=atHome;
     pub_atHomeStatus.publish(msg_atHome);
+
+    //publish home position; docking node will subscribe to this
 
     //navigation is complete; leave node in idle state
     ROS_INFO_STREAM("Navigation node is finished. Entering stand-by mode");
