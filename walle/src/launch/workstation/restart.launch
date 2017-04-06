@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- modify below as requred-->
+  <!--<node name="supervisor" pkg="walle" type="supervisor" output = "screen" launch-prefix= "xterm -e"/>-->
+
+  <node name="navigation" pkg="walle" type="navigation" output = "screen" launch-prefix= "xterm -e"/>
+
+  <node name="autoDocking" pkg="walle" type="autoDocking" output = "screen" launch-prefix= "xterm -e"/>
+
+  <!--<node name="dockDetect" pkg="walle" type="dockDetect" output = "screen" launch-prefix= "xterm -e"/>-->
+
+
+</launch>

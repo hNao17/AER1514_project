@@ -22,7 +22,7 @@ bool time_exceeded = false;
 bool startDock = false;
 bool printList = false;
 
-double allowable_time = 75.0;
+double allowable_time;
 
 const int listSize = 50;
 qrCode qrList[listSize];
@@ -33,7 +33,7 @@ double yCurr;
 double thetaCurr;
 double x_qrTol = 1.5;
 double y_qrTol = 1.5;
-double theta_qrTol = 45.0;
+double theta_qrTol = 90.0;
 
 const double rad2Degrees = 180/M_PI;
 
@@ -56,6 +56,9 @@ void poseRobotCallback(const geometry_msgs::PoseWithCovarianceStamped& msgPose);
 bool searchList(std::string word);
 void printWordList();
 void saveWordList();
+void importWordList();
+void writeTime(double timeRemaining);
+double importTime();
 
 int main(int argc, char** argv)
 {
@@ -78,9 +81,9 @@ int main(int argc, char** argv)
     pub_dockONStatus = nh3.advertise<std_msgs::Bool>("/dockON_Status",1000);
     pub_dockSucceedStatus = nh3.advertise<std_msgs::Bool>("/dockSucceed_Status",1000);
     pub_yawAngle = nh3.advertise<std_msgs::Float64>("/yawAngle",1000);
-
-    double start_time = ros::Time::now().toSec();
-    double current_time;
+    
+    ///importWordList();
+    //printWordList();
 
     std_msgs::Bool msg_exploreON;
     std_msgs::Bool msg_dockON;
@@ -91,9 +94,14 @@ int main(int argc, char** argv)
     //monitor incoming QR codes
     /*set exploreState to OFF when the allowable explore time has been exceeded and
     at least 1 qr code has been found */
+    
+    allowable_time = importTime();
+    ROS_INFO_STREAM("Allowable Explore Time ="<<allowable_time<<" [minutes]");
 
     //Explore State
     ros::Rate rs1(10); //loop rate = 10 [Hz]
+    double start_time = ros::Time::now().toSec();
+    double current_time;
     ROS_INFO_STREAM("Current Robot State: EXPLORE");
     current_time=ros::Time::now().toSec();
     ROS_INFO_STREAM("Elasped Time = "<<(current_time-start_time)/60<<"[minutes]");
@@ -108,6 +116,18 @@ int main(int argc, char** argv)
             time_exceeded = true;
             ROS_INFO_STREAM("Turning EXPLORE off");
         }
+        
+        //if()
+        if((int)(current_time-start_time)%60  == 0)
+        {
+            ROS_INFO_STREAM("Elasped Time = "<<(current_time-start_time)/60<<"[minutes]");
+            
+            if(!time_exceeded){
+                writeTime(allowable_time-(current_time-start_time));
+            }
+            
+            
+        }
 
         msg_exploreON.data = time_exceeded;
         msg_dockON.data = startDock;
@@ -117,10 +137,13 @@ int main(int argc, char** argv)
         pub_dockONStatus.publish(msg_dockON);
         pub_yawAngle.publish(msg_yawAngle);
         ros::spinOnce();
-
+        
+        //saveWordList();
         rs1.sleep();
 
     }
+    
+    saveWordList();
 
     //Return Home State
     ROS_INFO_STREAM("Current Robot State: RETURN_HOME");
@@ -135,11 +158,14 @@ int main(int argc, char** argv)
         pub_dockONStatus.publish(msg_dockON);
         msg_yawAngle.data = thetaCurr;
         pub_yawAngle.publish(msg_yawAngle);
+        
+        //saveWordList();
         rs1.sleep();
 
     }
 
     saveWordList();
+    
     ROS_INFO_STREAM("Turning RETURN_HOME off");
     printWordList();
 
@@ -153,6 +179,7 @@ int main(int argc, char** argv)
         msg_dockSucceed.data = printList;
         pub_dockSucceedStatus.publish(msg_dockSucceed);
 
+        //saveWordList();
         rs1.sleep();
 
     }
@@ -269,6 +296,7 @@ void printWordList()
         ROS_INFO_STREAM("List is empty");
     else
     {
+        ROS_INFO_STREAM("total words: "<<listCounter);
         ROS_INFO_STREAM("Word"<<"\t"<<"X Position"<<"\t"<<"Y Position"<<"\t"<<"Theta");
         for(int i = 0; i < listCounter; i++)
         {
@@ -288,21 +316,137 @@ void saveWordList()
         //std::ofstream fout("home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/qrList.txt");
         ROS_INFO_STREAM("List has more than one qr code");
         std::ofstream fout;
-        fout.open("qrMasterList.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
+        fout.open("/home/kasper/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
 
         if(fout.is_open())
         {
             ROS_INFO_STREAM("Fout is open");
 
-            for(int j=0;j<listCounter-1;j++)
+            for(int j=0;j<listCounter;j++)
             {
-                fout<<"\n"<<qrList[j].word;
+                //ROS_INFO_STREAM("writing word "<<qrList[j].word);
+                fout<<qrList[j].word<<"\t\t";
+                fout<<qrList[j].position_x<<"\t\t";
+                fout<<qrList[j].position_y<<"\t\t";
+                fout<<qrList[j].angle<<"\n";
             }
 
+            fout.flush();
             fout.close();
 
             ROS_INFO_STREAM("QR list sucessfully saved to hard disk");
         }
 
+    }
+}
+
+void importWordList(){
+    
+    std::ifstream infile("/home/kasper/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt", std::ios::ate);
+
+    double xPoint;
+    double yPoint;
+    double theta;
+    std::string word;
+    
+    
+    
+    if(infile.is_open())
+    {
+        if(infile.tellg() == 0){
+            
+            ROS_INFO_STREAM("file is empty");
+        }
+        else
+        {
+       
+            ROS_INFO_STREAM("importing previous words");
+            while(infile>>word>>xPoint>>yPoint>>theta)
+            {
+                
+                ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
+                
+                qrList[listCounter].word=word;
+                qrList[listCounter].position_x=xPoint;
+                qrList[listCounter].position_y=yPoint;
+                qrList[listCounter].angle=theta;
+                listCounter++;
+                
+                //ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
+            }
+            ROS_INFO_STREAM("number of imported words: "<<listCounter);
+            infile.close();
+        }
+
+    }
+
+    else
+    {
+        ROS_WARN_STREAM("File is not open");
+    }
+    
+}
+
+void writeTime(double timeRemaining){
+    
+    
+        //ROS_INFO_STREAM("writing current time");
+        std::ofstream ftime;
+        ftime.open("/home/kasper/catkin_ws/src/AER1514_project/walle/src/scripts/allowableTime.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
+
+        if(ftime.is_open())
+        {
+            //ROS_INFO_STREAM("Fout is open");
+
+            //ROS_INFO_STREAM("writing word "<<qrList[j].word);
+            ftime<<timeRemaining;
+     
+
+            ftime.flush();
+            ftime.close();
+
+ 
+        }
+    
+}
+
+double importTime(){
+    
+    std::ifstream intime("/home/kasper/catkin_ws/src/AER1514_project/walle/src/scripts/allowableTime.txt", std::ios::ate);
+
+    double time;
+    
+    if(intime.is_open())
+    {
+        if(intime.tellg() == 0){
+            
+            ROS_INFO_STREAM("file is empty");
+            return 0;
+        }
+        else
+        {
+
+            double line;
+            
+            while(!intime.eof()){
+                
+                getline(intime, line);
+                time = line;
+            }
+            
+            
+            intime.close();
+            
+            ROS_INFO_STREAM("imported time ="<<time);
+            
+            return time;
+        }
+        
+    }
+
+    else
+    {
+        ROS_WARN_STREAM("File is not open");
+        return 0;
     }
 }

@@ -11,11 +11,14 @@
 
 struct qrCode
 {
+    
+    std::string word;
+    
     double position_x;
     double position_y;
     double angle;
 
-    std::string word;
+    
 
 };
 
