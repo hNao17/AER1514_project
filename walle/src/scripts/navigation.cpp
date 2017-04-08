@@ -142,6 +142,8 @@ int main(int argc, char** argv)
 void readWaypoints()
 {
     std::ifstream infile;
+    //waypoint file including machine shop = "master_waypoints_final.csv"
+    //waypoint file without machine shop = "master_waypoints_final_nms.csv"
     infile.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints11.csv");
 
     double xPoint;

@@ -1,8 +1,11 @@
 //Created 2017-03-17
 //Updated 2017-03-24
 //Updated 2017-04-06
+//Updated 2017-04-07
 //Node that monitors 1) QR codes and 2) Turtlebot states
 //Can initiate state change request to navigation, auto-docking, dockDetect nodes
+//Writes remaining explore time & QR code information to external text files
+//Imports allowable explore time & previously captured QR information at startup
 //Prints / speaks the list of qr words
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -81,9 +84,9 @@ int main(int argc, char** argv)
     pub_dockONStatus = nh3.advertise<std_msgs::Bool>("/dockON_Status",1000);
     pub_dockSucceedStatus = nh3.advertise<std_msgs::Bool>("/dockSucceed_Status",1000);
     pub_yawAngle = nh3.advertise<std_msgs::Float64>("/yawAngle",1000);
-    
+
     importWordList();
-    ROS_INFO_STREAM("Printing Previously recognized qr codes");
+    ROS_INFO_STREAM("Printing previously captured qr codes");
     printWordList();
 
     std_msgs::Bool msg_exploreON;
@@ -91,43 +94,40 @@ int main(int argc, char** argv)
     std_msgs::Bool msg_dockSucceed;
     std_msgs::Float64 msg_yawAngle;
 
-    //exploreState is ON
-    //monitor incoming QR codes
-    /*set exploreState to OFF when the allowable explore time has been exceeded and
-    at least 1 qr code has been found */
-    
     allowable_time = importTime();
     ROS_INFO_STREAM("Allowable Explore Time ="<<allowable_time<<" [seconds]");
 
-    //Explore State
+    ////////Explore State/////////////////////////////////////////////////////
+    /*set explore state to OFF when the allowable explore time has been exceeded and
+    at least 1 qr code has been found */
     ros::Rate rs1(10); //loop rate = 10 [Hz]
     double start_time = ros::Time::now().toSec();
     double current_time;
+
     ROS_INFO_STREAM("Current Robot State: EXPLORE");
     current_time=ros::Time::now().toSec();
     ROS_INFO_STREAM("Elasped Time = "<<(current_time-start_time)/60<<"[minutes]");
     while(!time_exceeded)
     {
         current_time=ros::Time::now().toSec();
-        //ROS_INFO_STREAM("Elasped Time = "<<current_time-start_time<<"[s]");
-        //ROS_INFO_STREAM("Number of Words = "<<listCounter);
 
         if(current_time-start_time > allowable_time)
         {
             time_exceeded = true;
             ROS_INFO_STREAM("Turning EXPLORE off");
         }
-        
-        //if()
+
+        //write the allowable explore time remaining to an external text file, every 60 [s]
         if((int)(current_time-start_time)%60  == 0)
         {
             ROS_INFO_STREAM("Elasped Time = "<<(current_time-start_time)/60<<"[minutes]");
-            
-            if(!time_exceeded){
+
+            if(!time_exceeded)
+            {
                 writeTime(allowable_time-(current_time-start_time));
             }
-            
-            
+
+
         }
 
         msg_exploreON.data = time_exceeded;
@@ -138,39 +138,40 @@ int main(int argc, char** argv)
         pub_dockONStatus.publish(msg_dockON);
         pub_yawAngle.publish(msg_yawAngle);
         ros::spinOnce();
-        
-        //saveWordList();
+
         rs1.sleep();
 
     }
-    
+    ///////////////////////////////////////////////////////////////////////
+
     saveWordList();
 
-    //Return Home State
+    ///////Return Home State///////////////////////////////////////////////
+    //set return home state to OFF when the Turtlebot has returned to its home position
     ROS_INFO_STREAM("Current Robot State: RETURN_HOME");
     current_time=ros::Time::now().toSec();
     ROS_INFO_STREAM("Elasped Time = "<<(current_time-start_time)/60<<"[minutes]");
     while(!startDock)
     {
-        //ROS_INFO_STREAM("Number of Words = "<<listCounter);
 
         ros::spinOnce();
         msg_dockON.data = startDock;
         pub_dockONStatus.publish(msg_dockON);
         msg_yawAngle.data = thetaCurr;
         pub_yawAngle.publish(msg_yawAngle);
-        
-        //saveWordList();
+
         rs1.sleep();
 
     }
+    //////////////////////////////////////////////////////////////////////
 
     saveWordList();
-    
+
     ROS_INFO_STREAM("Turning RETURN_HOME off");
     printWordList();
 
-    //Docking State
+    //////////Docking State/////////////////////////////////////////////////
+    //set docking state to OFF when the Turtlebot has sucessfully docked
     ROS_INFO_STREAM("Current Robot State: AUTODOCKING");
     current_time=ros::Time::now().toSec();
     ROS_INFO_STREAM("Elasped Time = "<<(current_time-start_time)/60<<"[minutes]");
@@ -180,13 +181,12 @@ int main(int argc, char** argv)
         msg_dockSucceed.data = printList;
         pub_dockSucceedStatus.publish(msg_dockSucceed);
 
-        //saveWordList();
         rs1.sleep();
 
     }
-    //robot is docked; print qr list
+    /////////////////////////////////////////////////////////////////////////
+
     ROS_INFO_STREAM("Turning AUTODOCKING off");
-    //ROS_INFO_STREAM("Current Robot State: PRINT_QRLIST");
     ROS_INFO_STREAM("Turtlebot mission is complete");
 
     current_time=ros::Time::now().toSec();
@@ -259,6 +259,10 @@ void poseRobotCallback(const geometry_msgs::PoseWithCovarianceStamped& msgPose)
 	double roll, pitch, yaw;
 	m.getRPY(roll, pitch, yaw);
 
+	//convert negative angles to 0 < theta < 2*PI range
+    //if(yaw < 0)
+        //yaw = 2*M_PI + yaw;
+
 	thetaCurr = yaw*rad2Degrees;
 }
 
@@ -305,12 +309,13 @@ void printWordList()
         ROS_INFO_STREAM("List is empty");
     else
     {
-        ROS_INFO_STREAM("total words: "<<listCounter);
-        ROS_INFO_STREAM("Word"<<"\t"<<"X Position"<<"\t"<<"Y Position"<<"\t"<<"Theta");
+        ROS_INFO_STREAM("\n********************Mission Summary*********************");
+        ROS_INFO_STREAM("Number of Captured QR Codes = "<<listCounter);
+        ROS_INFO_STREAM("Index"<<"\t"<<"Word"<<"\t"<<"X Position"<<"\t"<<"Y Position"<<"\t"<<"Theta");
         for(int i = 0; i < listCounter; i++)
         {
-            //ROS_INFO_STREAM("Word "<<i+1<<": "<<qrList[i].word);
-            ROS_INFO_STREAM(qrList[i].word<<"\t"<<qrList[i].position_x<<"\t\t"<<qrList[i].position_y<<"\t\t"<<qrList[i].angle<<"\t\t");
+
+            ROS_INFO_STREAM(listCounter<<"\t"<<qrList[i].word<<"\t"<<qrList[i].position_x<<"\t\t"<<qrList[i].position_y<<"\t\t"<<qrList[i].angle<<"\t\t");
         }
     }
 
@@ -325,7 +330,7 @@ void saveWordList()
         //std::ofstream fout("home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/qrList.txt");
         ROS_INFO_STREAM("List has more than one qr code");
         std::ofstream fout;
-        fout.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
+        fout.open("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
 
         if(fout.is_open())
         {
@@ -333,11 +338,7 @@ void saveWordList()
 
             for(int j=0;j<listCounter;j++)
             {
-                //ROS_INFO_STREAM("writing word "<<qrList[j].word);
-//                fout<<qrList[j].word<<"\t\t";
-//                fout<<qrList[j].position_x<<"\t\t";
-//                fout<<qrList[j].position_y<<"\t\t";
-//                fout<<qrList[j].angle<<"\n";
+
                 fout<<qrList[j].word<<"\t\t"<<qrList[j].position_x<<"\t\t"<<qrList[j].position_y<<"\t\t"<<qrList[j].angle<<"\n";
             }
 
@@ -350,10 +351,61 @@ void saveWordList()
     }
 }
 
+void importWordList()
+{
 
-void writeTime(double timeRemaining){
-    
-    
+    std::ifstream infile;
+    infile.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt");
+
+    double xPoint;
+    double yPoint;
+    double theta;
+    std::string word;
+
+    if(infile.is_open())
+    {
+        if(infile.peek() == std::ifstream::traits_type::eof())
+        {
+
+            ROS_INFO_STREAM("File is empty");
+            infile.close();
+        }
+        else
+        {
+
+            ROS_INFO_STREAM("Importing previous words");
+            while(infile>>word>>xPoint>>yPoint>>theta)
+            {
+
+                ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
+
+                qrList[listCounter].word=word;
+                qrList[listCounter].position_x=xPoint;
+                qrList[listCounter].position_y=yPoint;
+                qrList[listCounter].angle=theta;
+                listCounter++;
+
+                //ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
+            }
+            ROS_INFO_STREAM("Nmber of imported words= "<<listCounter);
+            infile.close();
+        }
+
+    }
+
+    else
+    {
+        ROS_WARN_STREAM("File is not open");
+        infile.close();
+    }
+
+}
+
+
+void writeTime(double timeRemaining)
+{
+
+
         //ROS_INFO_STREAM("writing current time");
         std::ofstream ftime;
         ftime.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/allowableTime.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
@@ -364,18 +416,19 @@ void writeTime(double timeRemaining){
 
             //ROS_INFO_STREAM("writing word "<<qrList[j].word);
             ftime<<timeRemaining;
-     
+
 
             ftime.flush();
             ftime.close();
 
- 
+
         }
-    
+
 }
 
-double importTime(){
-    
+double importTime()
+{
+
     std::ifstream intime;
     intime.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/allowableTime.txt");
     //  std::ios::ate
@@ -387,8 +440,9 @@ double importTime(){
 
     if(intime.is_open())
     {
-        if(intime.peek() == std::ifstream::traits_type::eof()){
-            
+        if(intime.peek() == std::ifstream::traits_type::eof())
+        {
+
             ROS_INFO_STREAM("File is empty");
             return 0;
         }
@@ -424,52 +478,4 @@ double importTime(){
     intime.close();
 }
 
-void importWordList(){
 
-    std::ifstream infile;
-    infile.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt");
-
-    double xPoint;
-    double yPoint;
-    double theta;
-    std::string word;
-
-
-
-    if(infile.is_open())
-    {
-        if(infile.peek() == std::ifstream::traits_type::eof()){
-
-            ROS_INFO_STREAM("file is empty");
-            infile.close();
-        }
-        else
-        {
-
-            ROS_INFO_STREAM("importing previous words");
-            while(infile>>word>>xPoint>>yPoint>>theta)
-            {
-
-                ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
-
-                qrList[listCounter].word=word;
-                qrList[listCounter].position_x=xPoint;
-                qrList[listCounter].position_y=yPoint;
-                qrList[listCounter].angle=theta;
-                listCounter++;
-
-                //ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
-            }
-            ROS_INFO_STREAM("number of imported words: "<<listCounter);
-            infile.close();
-        }
-
-    }
-
-    else
-    {
-        ROS_WARN_STREAM("File is not open");
-        infile.close();
-    }
-
-}
