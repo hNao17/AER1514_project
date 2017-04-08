@@ -34,8 +34,8 @@ int listCounter=0;
 double xCurr;
 double yCurr;
 double thetaCurr;
-double x_qrTol = 1.5;
-double y_qrTol = 1.5;
+double x_qrTol = 2.25;
+double y_qrTol = 2.25;
 double theta_qrTol = 135.0;
 
 const double rad2Degrees = 180/M_PI;
