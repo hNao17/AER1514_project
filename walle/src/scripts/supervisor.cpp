@@ -317,6 +317,7 @@ void printWordList()
 
             std::cout<<"\n"<<i+1<<"\t"<<qrList[i].word<<"\t\t"<<qrList[i].position_x<<"\t\t"<<qrList[i].position_y<<"\t\t"<<qrList[i].angle<<"\t\t";
         }
+        std::cout<<"\n********************************************************\n";
     }
 
 }
