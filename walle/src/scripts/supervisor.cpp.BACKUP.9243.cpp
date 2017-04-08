@@ -34,8 +34,16 @@ int listCounter=0;
 double xCurr;
 double yCurr;
 double thetaCurr;
+<<<<<<< HEAD
 double x_qrTol = 2.25;
 double y_qrTol =  2.25;
+||||||| merged common ancestors
+double x_qrTol = 1.5;
+double y_qrTol = 1.5;
+=======
+double x_qrTol = 2.25;
+double y_qrTol = 2.25;
+>>>>>>> 4f067153930cc7c486543c8146c4c75a2d9ab460
 double theta_qrTol = 135.0;
 
 const double rad2Degrees = 180/M_PI;
@@ -312,20 +320,35 @@ void printWordList()
 <<<<<<< HEAD
 
 	std::cout<<"\n********************Mission Summary*********************";
-=======
-        std::cout<<"\n********************Mission Summary*********************";
->>>>>>> 494de47b94e5f15a26d48e96a04cda33460857da
         std::cout<<"\nNumber of Captured QR Codes = "<<listCounter;
         std::cout<<"\nIndex"<<"\t"<<"Word"<<"\t\t"<<"X Position"<<"\t"<<"Y Position"<<"\t"<<"Theta";
+||||||| merged common ancestors
+        ROS_INFO_STREAM("\n********************Mission Summary*********************");
+        ROS_INFO_STREAM("Number of Captured QR Codes = "<<listCounter);
+        ROS_INFO_STREAM("Index"<<"\t"<<"Word"<<"\t"<<"X Position"<<"\t"<<"Y Position"<<"\t"<<"Theta");
+=======
+        std::cout<<"\n********************Mission Summary*********************";
+        std::cout<<"\nNumber of Captured QR Codes = "<<listCounter;
+        std::cout<<"\nIndex"<<"\t"<<"Word"<<"\t\t"<<"X Position"<<"\t"<<"Y Position"<<"\t"<<"Theta";
+>>>>>>> 4f067153930cc7c486543c8146c4c75a2d9ab460
         for(int i = 0; i < listCounter; i++)
         {
 <<<<<<< HEAD
+            std::cout<<"\n"<<i+1<<"\t"<<qrList[i].word<<"\t\t"<<qrList[i].position_x<<"\t\t"<<qrList[i].position_y<<"\t\t"<<qrList[i].angle<<"\t\t";
+||||||| merged common ancestors
+
+            ROS_INFO_STREAM(listCounter<<"\t"<<qrList[i].word<<"\t"<<qrList[i].position_x<<"\t\t"<<qrList[i].position_y<<"\t\t"<<qrList[i].angle<<"\t\t");
 =======
 
->>>>>>> 494de47b94e5f15a26d48e96a04cda33460857da
             std::cout<<"\n"<<i+1<<"\t"<<qrList[i].word<<"\t\t"<<qrList[i].position_x<<"\t\t"<<qrList[i].position_y<<"\t\t"<<qrList[i].angle<<"\t\t";
+>>>>>>> 4f067153930cc7c486543c8146c4c75a2d9ab460
         }
+<<<<<<< HEAD
 	std::cout<<"\n********************************************************\n";
+||||||| merged common ancestors
+=======
+        std::cout<<"\n********************************************************\n";
+>>>>>>> 4f067153930cc7c486543c8146c4c75a2d9ab460
     }
 
 }

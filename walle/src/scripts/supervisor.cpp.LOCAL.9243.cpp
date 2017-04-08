@@ -309,20 +309,12 @@ void printWordList()
         ROS_INFO_STREAM("List is empty");
     else
     {
-<<<<<<< HEAD
 
 	std::cout<<"\n********************Mission Summary*********************";
-=======
-        std::cout<<"\n********************Mission Summary*********************";
->>>>>>> 494de47b94e5f15a26d48e96a04cda33460857da
         std::cout<<"\nNumber of Captured QR Codes = "<<listCounter;
         std::cout<<"\nIndex"<<"\t"<<"Word"<<"\t\t"<<"X Position"<<"\t"<<"Y Position"<<"\t"<<"Theta";
         for(int i = 0; i < listCounter; i++)
         {
-<<<<<<< HEAD
-=======
-
->>>>>>> 494de47b94e5f15a26d48e96a04cda33460857da
             std::cout<<"\n"<<i+1<<"\t"<<qrList[i].word<<"\t\t"<<qrList[i].position_x<<"\t\t"<<qrList[i].position_y<<"\t\t"<<qrList[i].angle<<"\t\t";
         }
 	std::cout<<"\n********************************************************\n";
