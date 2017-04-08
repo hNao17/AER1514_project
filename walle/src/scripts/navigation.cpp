@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 		i++;
 	}
 
-    ROS_INFO_STREAM("Number of waypoints visted: "<<i);
+    ROS_INFO_STREAM("Number of waypoints visted: "<<i+1);
     returnHome = true;
 
     while(!atHome)
