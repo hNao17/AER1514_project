@@ -33,7 +33,7 @@ double yCurr;
 double thetaCurr;
 double x_qrTol = 1.5;
 double y_qrTol = 1.5;
-double theta_qrTol = 90.0;
+double theta_qrTol = 135.0;
 
 const double rad2Degrees = 180/M_PI;
 
@@ -82,8 +82,9 @@ int main(int argc, char** argv)
     pub_dockSucceedStatus = nh3.advertise<std_msgs::Bool>("/dockSucceed_Status",1000);
     pub_yawAngle = nh3.advertise<std_msgs::Float64>("/yawAngle",1000);
     
-    ///importWordList();
-    //printWordList();
+    importWordList();
+    ROS_INFO_STREAM("Printing Previously recognized qr codes");
+    printWordList();
 
     std_msgs::Bool msg_exploreON;
     std_msgs::Bool msg_dockON;
@@ -96,7 +97,7 @@ int main(int argc, char** argv)
     at least 1 qr code has been found */
     
     allowable_time = importTime();
-    ROS_INFO_STREAM("Allowable Explore Time ="<<allowable_time<<" [minutes]");
+    ROS_INFO_STREAM("Allowable Explore Time ="<<allowable_time<<" [seconds]");
 
     //Explore State
     ros::Rate rs1(10); //loop rate = 10 [Hz]
@@ -215,6 +216,7 @@ void barcode_callback(const std_msgs::String& zbarWord)
            ROS_INFO_STREAM("Successfully added "<<qrList[listCounter].word<<"at ("<<qrList[listCounter].position_x<<"'"<<qrList[listCounter].position_y<<")"<<" to list");
            listCounter++;
            ROS_INFO_STREAM("Number of Words = "<<listCounter);
+           saveWordList();
        }
     }
 
@@ -274,7 +276,14 @@ bool searchList(std::string word)
         {
             if( abs(qrList[i].position_x-xCurr) < x_qrTol && abs(qrList[i].position_y-yCurr) < y_qrTol)
             {
-                if(abs(qrList[i].angle-thetaCurr) < theta_qrTol)
+            	double acuteAngleDiff = abs(qrList[i].angle-thetaCurr);
+
+            	if (acuteAngleDiff>180.0)
+            	{
+            		acuteAngleDiff = abs(360.0 - acuteAngleDiff);
+            	}
+
+                if(acuteAngleDiff < theta_qrTol)
                 {
                     ROS_INFO_STREAM(word<<" already exists in list at current Turtlebot position. Do not add.");
                     return true;
@@ -316,7 +325,7 @@ void saveWordList()
         //std::ofstream fout("home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/qrList.txt");
         ROS_INFO_STREAM("List has more than one qr code");
         std::ofstream fout;
-        fout.open("/home/kasper/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
+        fout.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
 
         if(fout.is_open())
         {
@@ -325,10 +334,11 @@ void saveWordList()
             for(int j=0;j<listCounter;j++)
             {
                 //ROS_INFO_STREAM("writing word "<<qrList[j].word);
-                fout<<qrList[j].word<<"\t\t";
-                fout<<qrList[j].position_x<<"\t\t";
-                fout<<qrList[j].position_y<<"\t\t";
-                fout<<qrList[j].angle<<"\n";
+//                fout<<qrList[j].word<<"\t\t";
+//                fout<<qrList[j].position_x<<"\t\t";
+//                fout<<qrList[j].position_y<<"\t\t";
+//                fout<<qrList[j].angle<<"\n";
+                fout<<qrList[j].word<<"\t\t"<<qrList[j].position_x<<"\t\t"<<qrList[j].position_y<<"\t\t"<<qrList[j].angle<<"\n";
             }
 
             fout.flush();
@@ -340,59 +350,13 @@ void saveWordList()
     }
 }
 
-void importWordList(){
-    
-    std::ifstream infile("/home/kasper/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt", std::ios::ate);
-
-    double xPoint;
-    double yPoint;
-    double theta;
-    std::string word;
-    
-    
-    
-    if(infile.is_open())
-    {
-        if(infile.tellg() == 0){
-            
-            ROS_INFO_STREAM("file is empty");
-        }
-        else
-        {
-       
-            ROS_INFO_STREAM("importing previous words");
-            while(infile>>word>>xPoint>>yPoint>>theta)
-            {
-                
-                ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
-                
-                qrList[listCounter].word=word;
-                qrList[listCounter].position_x=xPoint;
-                qrList[listCounter].position_y=yPoint;
-                qrList[listCounter].angle=theta;
-                listCounter++;
-                
-                //ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
-            }
-            ROS_INFO_STREAM("number of imported words: "<<listCounter);
-            infile.close();
-        }
-
-    }
-
-    else
-    {
-        ROS_WARN_STREAM("File is not open");
-    }
-    
-}
 
 void writeTime(double timeRemaining){
     
     
         //ROS_INFO_STREAM("writing current time");
         std::ofstream ftime;
-        ftime.open("/home/kasper/catkin_ws/src/AER1514_project/walle/src/scripts/allowableTime.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
+        ftime.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/allowableTime.txt"); //home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/
 
         if(ftime.is_open())
         {
@@ -412,41 +376,100 @@ void writeTime(double timeRemaining){
 
 double importTime(){
     
-    std::ifstream intime("/home/kasper/catkin_ws/src/AER1514_project/walle/src/scripts/allowableTime.txt", std::ios::ate);
+    std::ifstream intime;
+    intime.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/allowableTime.txt");
+    //  std::ios::ate
 
-    double time;
-    
+//    double time;
+//    intime>>time;
+//    ROS_INFO_STREAM("file is open with content ="<<time);
+
+
     if(intime.is_open())
     {
-        if(intime.tellg() == 0){
+        if(intime.peek() == std::ifstream::traits_type::eof()){
             
-            ROS_INFO_STREAM("file is empty");
+            ROS_INFO_STREAM("File is empty");
             return 0;
         }
         else
         {
+//        	ROS_INFO_STREAM("file is open and not empty");
 
-            double line;
-            
-            while(!intime.eof()){
-                
-                getline(intime, line);
-                time = line;
-            }
-            
-            
+            double time;
+
+            intime>>time;
+
+//            while(!intime.eof()){
+//                ROS_INFO_STREAM("imported time ="<<time);
+//                intime>>time;
+//            }
+
+            ROS_INFO_STREAM("Successfully imported time ="<<time);
+
             intime.close();
-            
-            ROS_INFO_STREAM("imported time ="<<time);
-            
             return time;
         }
-        
+
     }
 
     else
     {
         ROS_WARN_STREAM("File is not open");
+
+        intime.close();
         return 0;
     }
+
+    intime.close();
+}
+
+void importWordList(){
+
+    std::ifstream infile;
+    infile.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/qrMasterList.txt");
+
+    double xPoint;
+    double yPoint;
+    double theta;
+    std::string word;
+
+
+
+    if(infile.is_open())
+    {
+        if(infile.peek() == std::ifstream::traits_type::eof()){
+
+            ROS_INFO_STREAM("file is empty");
+            infile.close();
+        }
+        else
+        {
+
+            ROS_INFO_STREAM("importing previous words");
+            while(infile>>word>>xPoint>>yPoint>>theta)
+            {
+
+                ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
+
+                qrList[listCounter].word=word;
+                qrList[listCounter].position_x=xPoint;
+                qrList[listCounter].position_y=yPoint;
+                qrList[listCounter].angle=theta;
+                listCounter++;
+
+                //ROS_INFO_STREAM(word<<"\t"<<xPoint<<"\t"<<yPoint<<"\t"<<theta);
+            }
+            ROS_INFO_STREAM("number of imported words: "<<listCounter);
+            infile.close();
+        }
+
+    }
+
+    else
+    {
+        ROS_WARN_STREAM("File is not open");
+        infile.close();
+    }
+
 }

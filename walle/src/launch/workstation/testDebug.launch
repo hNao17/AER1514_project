@@ -1,0 +1,4 @@
+<launch>      
+     <node name="fileOper" pkg="walle" type="fileOper" output="screen" launch-prefix="xterm -e gdb --args">
+     </node>
+</launch>
