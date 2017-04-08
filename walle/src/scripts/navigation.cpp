@@ -20,7 +20,7 @@
 #include <std_msgs/Bool.h>
 
 /**Global Variables**/
-const int num_waypoints=21;
+const int num_waypoints=23;
 const int dim_waypoint=3;
 double path [num_waypoints][dim_waypoint];
 
@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 
     //user enters starting waypoint number
     int i;
-    std::cout<<"Enter starting waypoint number b/t 1-21 ";
+    std::cout<<"Enter starting waypoint number b/t 1-23 ";
     std::cin>>i;
     i=i-1;
 
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 		i++;
 	}
 
-    ROS_INFO_STREAM("Number of waypoints visted: "<<i);
+    ROS_INFO_STREAM("Number of waypoints visted: "<<i+1);
     returnHome = true;
 
     while(!atHome)
@@ -144,7 +144,7 @@ void readWaypoints()
     std::ifstream infile;
     //waypoint file including machine shop = "master_waypoints_final.csv"
     //waypoint file without machine shop = "master_waypoints_final_nms.csv"
-    infile.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints11.csv");
+    infile.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/master_waypoints_final.csv");
 
     double xPoint;
     double yPoint;

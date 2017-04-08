@@ -1,7 +1,9 @@
 //Created 2017-03-17
 //Updated 2017-03-24
+//Updated 2017-04-04
 //Node that allows Turtlebot to explore UTIAS
 //Uses an a priori set of waypoints that are read in from a text file
+//User can specificy the starting waypoint
 ///////////////////////////////////////////////////////////////////////////
 
 #include <ros/ros.h>
@@ -9,6 +11,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+//#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <iostream>
 #include <fstream>
@@ -17,7 +20,7 @@
 #include <std_msgs/Bool.h>
 
 /**Global Variables**/
-const int num_waypoints=50;
+const int num_waypoints=23;
 const int dim_waypoint=3;
 double path [num_waypoints][dim_waypoint];
 
@@ -25,17 +28,19 @@ bool exploreON = true;
 bool returnHome = false;
 bool atHome= false;
 
-const double x_home=31.5;
-const double y_home=4.0;
-const double theta_home=0.0;
+double x_home;
+double y_home;
+double theta_home;
 
 ros::Subscriber sub_pose;
 ros::Subscriber sub_exploreStatus;
 ros::Publisher pub_atHomeStatus;
 ros::Publisher pub_velNav;
+//ros::Publisher pub_homePos;
 
 double x_current;
 double y_current;
+double theta_current;
 
 double vel_x=-0.2;
 
@@ -62,12 +67,18 @@ int main(int argc, char** argv)
 	pub_atHomeStatus = nh1.advertise<std_msgs::Bool>("/atHomeStatus",1000);
 	pub_velNav = nh1.advertise<geometry_msgs::Twist>("mobile_base/commands/velocity",100);
 
+    //user enters starting waypoint number
+    int i;
+    std::cout<<"Enter starting waypoint number b/t 1-23 ";
+    std::cin>>i;
+    i=i-1;
+
 	//Turtlebot moves backwards away from docking station
 	ROS_INFO_STREAM("Backing away from docking station");
 	double timeStart = ros::Time::now().toSec();
 	double timeCurrent;
     geometry_msgs::Twist msg_vel;
-	while(timeCurrent - timeStart < 3.0)
+	while(timeCurrent - timeStart < 6.0)
     {
 
 
@@ -85,7 +96,10 @@ int main(int argc, char** argv)
     pub_velNav.publish(msg_vel);
 	ros::spinOnce();
 
-	int i=0;
+	//set home position to current Turtlebot Position
+	x_home = x_current;
+	y_home  = y_current;
+	theta_home = theta_current;
 
 	//main exploration loop
     while(i<num_waypoints && exploreON==true)
@@ -117,6 +131,8 @@ int main(int argc, char** argv)
     msg_atHome.data=atHome;
     pub_atHomeStatus.publish(msg_atHome);
 
+    //publish home position; docking node will subscribe to this
+
     //navigation is complete; leave node in idle state
     ROS_INFO_STREAM("Navigation node is finished. Entering stand-by mode");
     ros::spin();
@@ -125,7 +141,10 @@ int main(int argc, char** argv)
 
 void readWaypoints()
 {
-    std::ifstream infile("/home/na052/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/masterWaypoints8.txt.csv");
+    std::ifstream infile;
+    //waypoint file including machine shop = "master_waypoints_final.csv"
+    //waypoint file without machine shop = "master_waypoints_final_nms.csv"
+    infile.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/master_waypoints_final.csv");
 
     double xPoint;
     double yPoint;
@@ -187,7 +206,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
 	ac.sendGoal(goal);
 
 	//only cancel goal while the Turtlebot is in an explore state
-	if(exploreON==false && returnHome==false)
+	if(exploreON==false && returnHome == false)
 	{
 	    ac.cancelGoal();
 	    ROS_WARN_STREAM("Canceling goal b/c allowable search time has been exceeded.");
@@ -210,7 +229,7 @@ void moveToGoal(double xGoal, double yGoal, double yawGoal)
         }
         else
         {
-            ROS_INFO("The robot failed to reach the destination");
+            ROS_INFO("Turtlebot failed to reach the destination");
         }
     }
 
@@ -237,14 +256,25 @@ static tf::Quaternion toQuaternion(double pitch, double roll, double yaw)
 
 void poseAMCLCallback(const geometry_msgs::PoseWithCovarianceStamped& msgAMCL)
 {
-    ROS_INFO_STREAM("Current turtlebot position: ("
+    /*ROS_INFO_STREAM("Current turtlebot position: ("
                     <<msgAMCL.pose.pose.position.x <<","
                     <<msgAMCL.pose.pose.position.y <<","
-                    <<msgAMCL.pose.pose.position.z <<")");
+                    <<msgAMCL.pose.pose.position.z <<")");*/
 
 
 	x_current = msgAMCL.pose.pose.position.x;
 	y_current = msgAMCL.pose.pose.position.y;
+
+    tf::Quaternion q (msgAMCL.pose.pose.orientation.x,
+                      msgAMCL.pose.pose.orientation.y,
+             		 msgAMCL.pose.pose.orientation.z,
+               		 msgAMCL.pose.pose.orientation.w);
+
+	tf::Matrix3x3 m(q);
+	double roll, pitch, yaw;
+	m.getRPY(roll, pitch, yaw);
+
+	theta_current = yaw;
 }
 
 void exploreStatus_callback(const std_msgs::Bool& msg_exploreStatus)
@@ -253,13 +283,13 @@ void exploreStatus_callback(const std_msgs::Bool& msg_exploreStatus)
     if(!msg_exploreStatus.data)
     {
         exploreON = true;
-        ROS_INFO_STREAM("Explore state is still active. Continue searching for QR codes");
+        //ROS_INFO_STREAM("Explore state is still active. Continue searching for QR codes");
     }
 
     else
     {
         exploreON = false;
-        ROS_INFO_STREAM("Allowable explore time is over. Return to docking station");
+        //ROS_INFO_STREAM("Allowable explore time is over. Return to docking station");
     }
 
 

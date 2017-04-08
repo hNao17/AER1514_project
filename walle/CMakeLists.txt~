@@ -119,11 +119,13 @@ add_executable(autoDocking src/scripts/autoDocking.cpp)
 target_link_libraries(autoDocking ${catkin_LIBRARIES})
 
 #autoDockingStandalone.cpp
-add_executable(autoDocking src/scripts/autoDockingStandalone.cpp)
-target_link_libraries(autoDocking ${catkin_LIBRARIES})
+add_executable(autoDockingStandalone src/scripts/autoDockingStandalone.cpp)
+target_link_libraries(autoDockingStandalone ${catkin_LIBRARIES})
 
 #supervisor.cpp
 add_executable(supervisor src/scripts/supervisor.cpp)
 target_link_libraries(supervisor ${catkin_LIBRARIES})
 
-
+#fileOperationsTest.cpp
+#add_executable(fileOper src/scripts/fileOperationsTest.cpp)
+#target_link_libraries(fileOper ${catkin_LIBRARIES})

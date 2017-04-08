@@ -127,5 +127,5 @@ add_executable(supervisor src/scripts/supervisor.cpp)
 target_link_libraries(supervisor ${catkin_LIBRARIES})
 
 #fileOperationsTest.cpp
-#add_executable(fileOper src/scripts/fileOperationsTest.cpp)
-#target_link_libraries(fileOper ${catkin_LIBRARIES})
+add_executable(fileOper src/scripts/fileOperationsTest.cpp)
+target_link_libraries(fileOper ${catkin_LIBRARIES})
