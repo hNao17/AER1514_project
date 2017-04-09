@@ -20,7 +20,7 @@
 #include <std_msgs/Bool.h>
 
 /**Global Variables**/
-const int num_waypoints=23;
+const int num_waypoints=21;
 const int dim_waypoint=3;
 double path [num_waypoints][dim_waypoint];
 
@@ -124,6 +124,7 @@ int main(int argc, char** argv)
     {
         ROS_INFO_STREAM("Exploration complete. Going home.");
         moveToGoal(x_home,y_home,theta_home);
+	ros::spinOnce();
     }
 
 
@@ -134,6 +135,7 @@ int main(int argc, char** argv)
     //publish home position; docking node will subscribe to this
 
     //navigation is complete; leave node in idle state
+    ROS_INFO_STREAM("Final Postion x ="<<x_current<<" y ="<<y_current);
     ROS_INFO_STREAM("Navigation node is finished. Entering stand-by mode");
     ros::spin();
 
@@ -144,7 +146,7 @@ void readWaypoints()
     std::ifstream infile;
     //waypoint file including machine shop = "master_waypoints_final.csv"
     //waypoint file without machine shop = "master_waypoints_final_nms.csv"
-    infile.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/master_waypoints_final.csv");
+    infile.open("/home/venu/catkin_ws/src/AER1514_project/walle/src/scripts/waypoint_textfiles/master_waypoints_final_nms.csv");
 
     double xPoint;
     double yPoint;

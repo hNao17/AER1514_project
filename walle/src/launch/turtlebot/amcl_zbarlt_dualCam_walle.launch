@@ -105,7 +105,7 @@
   <param name="/move_base/DWAPlannerROS/vtheta_samples" value="40" />
   <param name="/move_base/DWAPlannerROS/max_vel_x" value="0.22" />
   <param name="/move_base/DWAPlannerROS/max_trans_vel" value="0.22" />
-  <param name="/move_base/DWAPlannerROS/xy_goal_tolerance" value="0.30" />
+  <param name="/move_base/DWAPlannerROS/xy_goal_tolerance" value="0.20" />
   <!-- cost map parameters -->
 
 
